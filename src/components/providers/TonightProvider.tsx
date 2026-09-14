@@ -17,6 +17,7 @@ import { buildChips, removeChip } from "@/naturalLanguage/chips";
 import { pickNextOfferIndex } from "@/recommendation/nextOffer";
 import { getFeedback, getSettings, recordRecommendation } from "@/storage";
 import { computeTasteProfile } from "@/storage/tasteProfile";
+import { apiErrorMessage, isRecommendApiResponse } from "@/utils/recommendResponse";
 import type {
   MediaTypeChoice,
   PreferencesSource,
@@ -157,7 +158,19 @@ export function TonightProvider({ children }: { children: React.ReactNode }) {
             seed: options.seed ?? Math.floor(Math.random() * 100_000),
           }),
         });
-        const payload = (await res.json()) as RecommendResponse & { error?: string };
+        const rawPayload: unknown = await res.json().catch(() => null);
+        if (!isRecommendApiResponse(rawPayload)) {
+          setError(
+            apiErrorMessage(rawPayload) ??
+              (res.status === 429
+                ? "Tu as lancé beaucoup de recherches. Attends un instant puis réessaie."
+                : "Tonight n'arrive pas à lire la réponse de son moteur. Réessaie dans un instant."),
+          );
+          setResponse(null);
+          return;
+        }
+
+        const payload = rawPayload;
         setResponse(payload);
         setOfferIndex(0);
         setShownOffers([0]);
