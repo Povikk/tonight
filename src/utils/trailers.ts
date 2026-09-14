@@ -66,7 +66,7 @@ export function youtubeWatchUrl(key: string): string {
 /** URL d'intégration du lecteur YouTube, sans cookie ni suggestion superflue. */
 export function youtubeEmbedUrl(key: string): string {
   const params = new URLSearchParams({
-    autoplay: "1",
+    autoplay: "0",
     rel: "0",
     modestbranding: "1",
     // Pas de cookies YouTube avant lecture explicite (respect de la vie privée).

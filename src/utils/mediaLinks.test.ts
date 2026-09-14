@@ -63,7 +63,7 @@ describe("pickTrailer", () => {
     expect(youtubeWatchUrl("abc 123")).toBe("https://www.youtube.com/watch?v=abc%20123");
     const embed = youtubeEmbedUrl("abc123");
     expect(embed.startsWith("https://www.youtube-nocookie.com/embed/abc123?")).toBe(true);
-    expect(embed).toContain("autoplay=1");
+    expect(embed).toContain("autoplay=0");
   });
 });
 

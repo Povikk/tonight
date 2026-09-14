@@ -11,6 +11,7 @@ import { BackdropImage, PosterImage } from "./PosterImage";
 import { MatchBadge, ProviderBadges, detailHref } from "./cards";
 import { MediaActionBar } from "./MediaActionBar";
 import { RefusalSheet } from "./RefusalSheet";
+import { TrailerDialog } from "./TrailerDialog";
 import { Pill, TonightButton } from "./ui";
 import { useTonight } from "./providers/TonightProvider";
 
@@ -368,6 +369,7 @@ export function ResultView() {
 
       {/* --- Actions secondaires --- */}
       <div className="flex flex-wrap items-center gap-3">
+        <TrailerDialog id={candidate.id} mediaType={candidate.mediaType} title={candidate.title} />
         <Link
           href={detailHref(candidate)}
           className="rounded-full border border-night-line px-4 py-2 text-sm text-muted transition-colors hover:text-chalk"
