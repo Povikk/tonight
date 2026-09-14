@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   TONIGHT, design system
+   Direction artistique : cinéma, nuit, premium, minimaliste.
+   Palette : noir profond, bleu nuit, blanc cassé, un violet très discret.
+   ========================================================================== */
+
+@theme {
+  /* Couleurs */
+  --color-ink: #04050a;
+  --color-ink-soft: #0a0c14;
+  --color-night: #0c1224;
+  --color-night-soft: #141c33;
+  --color-night-line: #232c48;
+  --color-chalk: #f6f3ed;
+  --color-muted: #98a1b8;
+  --color-muted-dim: #6c7590;
+  --color-violet: #7b6cff;
+  --color-violet-soft: #a89bff;
+  --color-amber: #ffc978;
+  --color-danger: #ff7a7a;
+  --color-good: #7fe0a8;
+
+  /* Typographie */
+  --font-display: "Inter Tight", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Inter", "Helvetica Neue", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  /* Animations */
+  --animate-fade-up: t-fade-up 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  --animate-fade-in: t-fade-in 0.5s ease both;
+  --animate-pop: t-pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-drift: t-drift 24s ease-in-out infinite;
+  --animate-shimmer: t-shimmer 1.6s linear infinite;
+  --animate-pulse-soft: t-pulse-soft 1.8s ease-in-out infinite;
+
+  @keyframes t-fade-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes t-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes t-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes t-drift {
+    0%,
+    100% {
+      transform: scale(1.06) translate3d(0, 0, 0);
+    }
+    50% {
+      transform: scale(1.12) translate3d(-1.5%, -1.5%, 0);
+    }
+  }
+  @keyframes t-shimmer {
+    0% {
+      background-position: -140% 0;
+    }
+    100% {
+      background-position: 240% 0;
+    }
+  }
+  @keyframes t-pulse-soft {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-chalk);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* éviter tout scroll horizontal sur mobile (exigence responsive) */
+  overflow-x: hidden;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-violet) 45%, transparent);
+  color: white;
+}
+
+/* Focus visible partout : accessibilité clavier */
+:focus-visible {
+  outline: 2px solid var(--color-violet-soft);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Scrollbar discrète */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-night-line) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-night-line);
+  border-radius: 999px;
+}
+
+/* --------------------------------------------------------------------------
+   Effets réutilisables
+   -------------------------------------------------------------------------- */
+
+/* Halo lumineux d'ambiance (homepage / écran résultat) */
+.t-aurora {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 18% 8%, rgba(123, 108, 255, 0.22), transparent 70%),
+    radial-gradient(45% 45% at 85% 12%, rgba(255, 201, 120, 0.12), transparent 70%),
+    radial-gradient(70% 60% at 50% 110%, rgba(20, 28, 51, 0.9), transparent 70%);
+}
+
+.t-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: soft-light;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
+}
+
+.t-panel {
+  background: linear-gradient(180deg, rgba(20, 28, 51, 0.72), rgba(10, 12, 20, 0.72));
+  border: 1px solid var(--color-night-line);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
+}
+
+.t-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-night-line);
+  background: rgba(12, 18, 36, 0.7);
+  font-size: 0.85rem;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* Barre de progression du questionnaire */
+.t-progress-fill {
+  transition: width 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Squelette de chargement (posters, backdrops) */
+.t-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(35, 44, 72, 0.35) 0%,
+    rgba(60, 72, 110, 0.6) 45%,
+    rgba(35, 44, 72, 0.35) 100%
+  );
+  background-size: 220% 100%;
+  animation: var(--animate-shimmer);
+}
+
+/* Texte en dégradé pour le logo */
+.t-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(180deg, #ffffff 0%, #cfd6ea 70%, #9aa3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.t-balance {
+  text-wrap: balance;
+}
+
+/* --------------------------------------------------------------------------
+   Accessibilité : respect strict de prefers-reduced-motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .t-skeleton {
+    animation: none;
+  }
+}
