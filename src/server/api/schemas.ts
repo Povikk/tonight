@@ -88,7 +88,10 @@ const numericRecord = z.record(
   z.string().regex(/^\d{1,10}$/),
   z.number().finite().min(-10_000).max(10_000),
 );
-const moodWeights = z.record(mood, z.number().finite().min(-1).max(1));
+// Le profil ne contient que les moods pour lesquels un signal existe. Avec
+// Zod 4, `z.record(enum, ...)` exige toutes les clés de l'enum ; `partialRecord`
+// correspond au type réel `Partial<Record<Mood, number>>`.
+const moodWeights = z.partialRecord(mood, z.number().finite().min(-1).max(1));
 
 const tasteProfile = z.object({
   genreWeights: numericRecord,
