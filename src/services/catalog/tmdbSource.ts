@@ -44,7 +44,13 @@ import type { CatalogSource, PoolRequest, ProviderOption } from "./types";
  * est mis en cache 24 h. Enrichir 70 œuvres avec 8 requêtes en parallèle prend
  * moins d'une seconde.
  */
-const ENRICH_LIMIT = POOL_TARGET_SIZE;
+const configuredEnrichLimit = Number.parseInt(
+  process.env.TONIGHT_POOL_TARGET_SIZE ?? String(POOL_TARGET_SIZE),
+  10,
+);
+const ENRICH_LIMIT = Number.isFinite(configuredEnrichLimit)
+  ? Math.max(5, Math.min(POOL_TARGET_SIZE, configuredEnrichLimit))
+  : POOL_TARGET_SIZE;
 /** Concurrence des appels TMDB. */
 const CONCURRENCY = 8;
 /** Plancher de votes pour les pools « mood » triés par popularité. */

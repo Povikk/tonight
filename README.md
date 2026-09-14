@@ -97,6 +97,20 @@ npm start            # serveur de production (port 3777)
 npm run verify:live  # vérifie les parcours contre la VRAIE API TMDB
 ```
 
+### Déploiement Cloudflare Workers
+
+La version full-stack utilise `vinext`, en parallèle du build Next.js classique :
+
+```bash
+npm run build:vinext
+npm run deploy:vinext
+npx wrangler secret put TMDB_READ_ACCESS_TOKEN
+```
+
+Le fichier `wrangler.jsonc` fixe `TONIGHT_POOL_TARGET_SIZE=16` pour rester sous
+les 50 sous-requêtes externes autorisées par invocation sur Workers Free. Un
+compte Workers Paid peut remonter cette valeur jusqu'à `70`.
+
 > Le port est fixé à **3777** dans `package.json` pour éviter de tomber sur un
 > autre serveur de dev déjà lancé.
 
