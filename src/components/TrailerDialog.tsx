@@ -92,9 +92,16 @@ export function TrailerDialog({
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Fermer la bande-annonce"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-night-line text-xl text-muted hover:text-chalk"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-night-line text-muted hover:text-chalk"
               >
-                ×
+                <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4" fill="none">
+                  <path
+                    d="M5 5l10 10M15 5L5 15"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </button>
             </div>
 
