@@ -63,6 +63,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </Link>
               </div>
             </div>
+            <p className="mt-4 text-center text-[0.625rem] tracking-[0.12em] text-muted-dim/60">
+              By Povik · All rights reserved.
+            </p>
           </footer>
         </TonightProvider>
       </body>
