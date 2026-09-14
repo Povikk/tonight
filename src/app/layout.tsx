@@ -27,17 +27,17 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className="min-h-dvh">
+      <body className="flex min-h-dvh flex-col">
         <TonightProvider>
           <FirstLaunchOverlay />
           {/* Voile global : visible dès qu'une recherche est en cours, quelle que
               soit la page qui l'a déclenchée (§58). */}
           <SearchOverlay />
           <Navigation />
-          <main id="contenu" className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 sm:px-6 md:pb-16">
+          <main id="contenu" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-6 md:pb-16">
             {children}
           </main>
-          <footer className="mx-auto max-w-6xl px-4 pb-24 text-xs text-muted-dim sm:px-6 md:pb-10">
+          <footer className="mx-auto w-full max-w-6xl px-4 pb-24 text-xs text-muted-dim sm:px-6 md:pb-10">
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-night-line/60 pt-5">
               <TonightLogo size="sm" asLink={false} />
               <div className="max-w-xl space-y-1 leading-relaxed">

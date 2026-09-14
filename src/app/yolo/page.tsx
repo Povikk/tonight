@@ -16,7 +16,7 @@ import type { MediaTypeChoice } from "@/types/tonight";
  */
 export default function YoloPage() {
   const router = useRouter();
-  const { runSearch, loading } = useTonight();
+  const { runSearch, loading, offers } = useTonight();
   const [launching, setLaunching] = useState(false);
 
   const go = async (choice: MediaTypeChoice) => {
@@ -30,9 +30,13 @@ export default function YoloPage() {
       softPreferences: ["wellRated"],
       confidence: 0.75,
     });
-    // YOLO relance un tirage neuf à chaque clic : la liste d'exclusions doit
-    // repartir de zéro, sinon au bout de quelques essais il ne reste rien.
-    await runSearch(preferences, { source: "yolo", resetExcluded: true });
+    // Tout le lot précédent était visible sur l'écran résultat. On l'exclut
+    // donc du prochain tirage : sinon les mêmes favoris du classement TMDB
+    // peuvent revenir dès que l'utilisateur relance YOLO.
+    await runSearch(preferences, {
+      source: "yolo",
+      exclude: offers.map((offer) => `${offer.candidate.mediaType}:${offer.candidate.id}`),
+    });
     router.push("/resultat");
   };
 

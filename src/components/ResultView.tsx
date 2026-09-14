@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { canonicalGenres } from "@/utils/canonical";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
+import { mergeRefinementPreferences } from "@/naturalLanguage/mergeRefinement";
 import { formatRating, formatRuntime, formatSeriesYears, formatVoteCount, formatEpisodeRuntime, formatSeasons } from "@/utils/format";
 import { seriesStatusLabel } from "@/utils/constants";
-import type { ScoredCandidate, TonightSearchPreferences } from "@/types/tonight";
+import type { ParsedRequest, ScoredCandidate, TonightSearchPreferences } from "@/types/tonight";
 import { BackdropImage, PosterImage } from "./PosterImage";
 import { MatchBadge, ProviderBadges, detailHref } from "./cards";
 import { MediaActionBar } from "./MediaActionBar";
@@ -128,12 +129,17 @@ export function ResultView() {
     response,
     runSearch,
     preferences,
+    setQuery,
+    setPreferences,
+    loading,
     rememberCurrent,
     resetSession,
   } = useTonight();
 
   const [refusalOpen, setRefusalOpen] = useState(false);
   const [started, setStarted] = useState(false);
+  const [refinement, setRefinement] = useState("");
+  const [refinementError, setRefinementError] = useState<string | null>(null);
 
   if (error && !current) {
     return (
@@ -220,6 +226,43 @@ export function ResultView() {
       source: "yolo",
       exclude: [`${candidate.mediaType}:${candidate.id}`],
     });
+  };
+
+  const refine = async () => {
+    const query = refinement.trim();
+    if (!query) {
+      setRefinementError("Écris juste ce que tu veux changer.");
+      return;
+    }
+
+    setRefinementError(null);
+    try {
+      const parseResponse = await fetch("/api/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query,
+          forcedMediaType: preferences.mediaType,
+          source: "yolo",
+        }),
+      });
+      const parsed = (await parseResponse.json()) as ParsedRequest & { error?: string };
+      if (!parseResponse.ok || parsed.error || !parsed.preferences) {
+        throw new Error(parsed.error || "Demande illisible");
+      }
+
+      const refinedPreferences = mergeRefinementPreferences(preferences, parsed.preferences);
+      setQuery(query);
+      setPreferences(refinedPreferences);
+      setStarted(false);
+      setRefinement("");
+      await runSearch(refinedPreferences, {
+        source: "yolo",
+        exclude: offers.map((offer) => `${offer.candidate.mediaType}:${offer.candidate.id}`),
+      });
+    } catch {
+      setRefinementError("Je n'ai pas compris cet affinage. Essaie une phrase plus simple.");
+    }
   };
 
   return (
@@ -384,6 +427,46 @@ export function ResultView() {
           🎲 Trouver quelque chose de similaire
         </button>
       </div>
+
+      {preferences.source === "yolo" ? (
+        <section aria-labelledby="refine-title" className="t-panel space-y-3 p-4 sm:p-5">
+          <div className="space-y-1">
+            <h2 id="refine-title" className="font-display text-base font-semibold text-chalk">
+              Pas tout à fait ? Affine le choix.
+            </h2>
+            <p className="text-xs text-muted-dim">
+              Par exemple : « plus récent », « qui fait moins peur » ou « moins de 2 heures ».
+            </p>
+          </div>
+          <form
+            className="flex flex-col gap-2 sm:flex-row"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void refine();
+            }}
+          >
+            <label htmlFor="yolo-refinement" className="sr-only">
+              Affiner la recommandation
+            </label>
+            <input
+              id="yolo-refinement"
+              type="text"
+              value={refinement}
+              onChange={(event) => setRefinement(event.target.value)}
+              placeholder="Je voudrais quelque chose de…"
+              maxLength={600}
+              disabled={loading}
+              className="min-w-0 flex-1 rounded-full border border-night-line bg-night/70 px-4 py-2.5 text-sm text-chalk placeholder:text-muted-dim focus:border-violet/60 focus:outline-none"
+            />
+            <TonightButton type="submit" disabled={loading || !refinement.trim()}>
+              {loading ? "J'AFFINE…" : "AFFINER"}
+            </TonightButton>
+          </form>
+          {refinementError ? (
+            <p role="alert" className="text-xs text-danger">{refinementError}</p>
+          ) : null}
+        </section>
+      ) : null}
 
       <WhySection offer={current} relaxations={response?.relaxations.map((item) => item.message) ?? []} />
 
