@@ -24,6 +24,7 @@
 import type { Candidate, HardConstraintId, MediaType, TonightSearchPreferences } from "@/types/tonight";
 import { GENRE, classifySeriesStatus } from "@/utils/constants";
 import { canonicalGenres } from "@/utils/canonical";
+import { calculateMoodFit } from "./moodScore";
 
 export interface FilterOutcome {
   passed: Candidate[];
@@ -104,6 +105,16 @@ export function violatedConstraint(
   if (has(preferences, "requireGenre") && preferences.genres.length) {
     const wanted = preferences.genres.map((genre) => genre);
     if (!wanted.some((genre) => genres.includes(genre))) return "requireGenre";
+  }
+
+  // « Avoir peur » est une intention catégorique, pas une simple couleur
+  // d'ambiance. Sans ce garde-fou, la qualité générale pouvait faire gagner un
+  // drame extrêmement bien noté (comme Les Évadés) malgré un fit horreur nul.
+  // Le genre, un keyword ou des indices suffisamment forts dans le synopsis
+  // peuvent tous valider le mood, ce qui fonctionne aussi pour les séries TMDB
+  // qui ne disposent pas d'un genre « Horreur » dédié.
+  if (preferences.moods.includes("horror") && calculateMoodFit(candidate, "horror") < 0.5) {
+    return "requireGenre";
   }
 
   if (preferences.excludeAnimation && genres.includes(GENRE.ANIMATION)) return "excludeAnimation";

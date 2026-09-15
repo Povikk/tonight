@@ -2,7 +2,21 @@ import { describe, expect, it } from "vitest";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
 import { GENRE } from "@/utils/constants";
 import { parseNaturalLanguageRequest } from "./parseRequest";
-import { mergeRefinementPreferences } from "./mergeRefinement";
+import { mergeRefinementPreferences, progressiveRecentYear } from "./mergeRefinement";
+
+describe("progressiveRecentYear", () => {
+  it("remplace un vieux résultat par une vraie borne récente", () => {
+    expect(progressiveRecentYear(1994, 2026)).toBe(2014);
+  });
+
+  it("avance d'une année par rapport au résultat courant", () => {
+    expect(progressiveRecentYear(2020, 2026)).toBe(2021);
+  });
+
+  it("ne demande jamais une année future", () => {
+    expect(progressiveRecentYear(2026, 2026)).toBe(2026);
+  });
+});
 
 describe("mergeRefinementPreferences", () => {
   it("conserve YOLO et ajoute une préférence plus récente", () => {

@@ -298,6 +298,19 @@ describe("contraintes dures (§13)", () => {
     const outcome = applyHardFilters([candidate({ id: 15, runtime: null, verified: true })], preferences);
     expect(outcome.passed.map((item) => item.id)).toEqual([15]);
   });
+
+  it("« Avoir peur » rejette un drame sans aucun signal horrifique", () => {
+    const preferences = createEmptyPreferences("questionnaire", {
+      moods: ["horror"],
+    });
+    const drama = candidate({ id: 16, genres: [GENRE.DRAMA], overview: "Deux détenus se lient d'amitié." });
+    const horror = candidate({ id: 17, genres: [GENRE.HORROR, GENRE.THRILLER] });
+
+    const outcome = applyHardFilters([drama, horror], preferences);
+
+    expect(outcome.passed.map((item) => item.id)).toEqual([17]);
+    expect(outcome.mainReason).toBe("requireGenre");
+  });
 });
 
 describe("variété (§36)", () => {

@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { canonicalGenres } from "@/utils/canonical";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
-import { mergeRefinementPreferences } from "@/naturalLanguage/mergeRefinement";
+import {
+  mergeRefinementPreferences,
+  progressiveRecentYear,
+} from "@/naturalLanguage/mergeRefinement";
 import { formatRating, formatRuntime, formatSeriesYears, formatVoteCount, formatEpisodeRuntime, formatSeasons } from "@/utils/format";
 import { seriesStatusLabel } from "@/utils/constants";
 import type { ParsedRequest, ScoredCandidate, TonightSearchPreferences } from "@/types/tonight";
@@ -446,7 +449,11 @@ export function ResultView() {
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {[
-              { emoji: "🆕", label: "Plus récent", query: "plus récent" },
+              {
+                emoji: "🆕",
+                label: "Plus récent",
+                query: `depuis ${progressiveRecentYear(candidate.year)}`,
+              },
               { emoji: "☀️", label: "Plus léger", query: "plus léger et facile à regarder" },
               {
                 emoji: "⏱️",

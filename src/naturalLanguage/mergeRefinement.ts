@@ -1,5 +1,19 @@
 import type { TonightSearchPreferences } from "@/types/tonight";
 
+/**
+ * Le raccourci « Plus récent » doit réellement avancer à chaque clic.
+ * On exige au minimum les 12 dernières années, puis une année de plus que
+ * l'œuvre actuellement affichée (sans dépasser l'année courante).
+ */
+export function progressiveRecentYear(
+  candidateYear: number | null,
+  currentYear = new Date().getFullYear(),
+): number {
+  const recentBaseline = currentYear - 12;
+  if (candidateYear === null) return recentBaseline;
+  return Math.min(currentYear, Math.max(recentBaseline, candidateYear + 1));
+}
+
 function union<T>(left: T[], right: T[]): T[] {
   return [...new Set([...left, ...right])];
 }
