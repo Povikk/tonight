@@ -10,7 +10,13 @@ import { describe, expect, it } from "vitest";
 import type { ProviderAvailability } from "@/types/tonight";
 import type { TmdbVideo } from "@/types/tmdb";
 import { allOffersUrl, providerWatchUrl } from "./providers";
-import { pickTrailer, youtubeEmbedUrl, youtubeWatchUrl } from "./trailers";
+import {
+  pickTrailer,
+  trailerEmbedUrl,
+  trailerWatchUrl,
+  youtubeEmbedUrl,
+  youtubeWatchUrl,
+} from "./trailers";
 
 function video(overrides: Partial<TmdbVideo> & Pick<TmdbVideo, "key" | "type">): TmdbVideo {
   return {
@@ -27,10 +33,9 @@ describe("pickTrailer", () => {
     expect(pickTrailer([])).toBeNull();
   });
 
-  it("ignore tout ce qui n'est pas une vidéo YouTube lisible", () => {
-    // Vimeo ne s'intègre pas dans le lecteur, une clé vide ne mène nulle part.
+  it("ignore les plateformes inconnues et les clés vides", () => {
     const videos = [
-      video({ key: "abc", type: "Trailer", site: "Vimeo" }),
+      video({ key: "abc", type: "Trailer", site: "Dailymotion" }),
       video({ key: "   ", type: "Trailer" }),
     ];
     expect(pickTrailer(videos)).toBeNull();
@@ -56,7 +61,13 @@ describe("pickTrailer", () => {
 
   it("expose la langue retenue pour prévenir qu'une vidéo est en VO", () => {
     const best = pickTrailer([video({ key: "en", type: "Trailer", iso_639_1: "en" })], "fr");
-    expect(best).toEqual({ key: "en", name: "Vidéo en", language: "en", official: false });
+    expect(best).toEqual({
+      key: "en",
+      name: "Vidéo en",
+      site: "YouTube",
+      language: "en",
+      official: false,
+    });
   });
 
   it("construit des URLs d'intégration et de lecture sûres", () => {
@@ -64,6 +75,18 @@ describe("pickTrailer", () => {
     const embed = youtubeEmbedUrl("abc123");
     expect(embed.startsWith("https://www.youtube-nocookie.com/embed/abc123?")).toBe(true);
     expect(embed).toContain("autoplay=0");
+  });
+
+  it("accepte et construit les liens d'une bande-annonce Vimeo", () => {
+    const trailer = pickTrailer([
+      video({ key: "987654", type: "Trailer", site: "Vimeo", iso_639_1: "fr" }),
+    ]);
+
+    expect(trailer?.site).toBe("Vimeo");
+    expect(trailerEmbedUrl(trailer!)).toBe(
+      "https://player.vimeo.com/video/987654?dnt=1&autoplay=0",
+    );
+    expect(trailerWatchUrl(trailer!)).toBe("https://vimeo.com/987654");
   });
 });
 

@@ -324,6 +324,8 @@ export interface TrailerInfo {
   /** Identifiant YouTube de la vidéo. */
   key: string;
   name: string;
+  /** Plateforme vidéo référencée par TMDB. */
+  site: "YouTube" | "Vimeo";
   /** Langue d'origine de la bande-annonce (`fr`, `en`…) si TMDB la donne. */
   language: string | null;
   /** Vraie bande-annonce officielle, plutôt qu'un teaser ou un extrait. */

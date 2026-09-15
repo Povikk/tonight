@@ -7,7 +7,7 @@ import { formatEpisodeRuntime, formatRating, formatRuntime, formatSeasons, forma
 import { seriesStatusLabel } from "@/utils/constants";
 import { canonicalGenres } from "@/utils/canonical";
 import { EXTERNAL_LINK_REL, allOffersUrl } from "@/utils/providers";
-import { youtubeEmbedUrl, youtubeWatchUrl } from "@/utils/trailers";
+import { trailerEmbedUrl, trailerWatchUrl } from "@/utils/trailers";
 import type { CandidateDetails } from "@/types/tonight";
 import { BackdropImage, PosterImage } from "./PosterImage";
 import { ProviderBadges, detailHref } from "./cards";
@@ -34,7 +34,7 @@ function TrailerSection({ details }: { details: CandidateDetails }) {
       {playing ? (
         <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-night-line bg-ink">
           <iframe
-            src={youtubeEmbedUrl(trailer.key)}
+            src={trailerEmbedUrl(trailer)}
             title={`Bande-annonce de ${details.title}`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -74,12 +74,12 @@ function TrailerSection({ details }: { details: CandidateDetails }) {
       <p className="mt-2 text-[0.7rem] text-muted-dim">
         Vidéo fournie par TMDB.{" "}
         <a
-          href={youtubeWatchUrl(trailer.key)}
+          href={trailerWatchUrl(trailer)}
           target="_blank"
           rel={EXTERNAL_LINK_REL}
           className="underline decoration-dotted hover:text-chalk"
         >
-          Ouvrir sur YouTube
+          Ouvrir sur {trailer.site ?? "YouTube"}
         </a>
       </p>
     </section>

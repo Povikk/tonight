@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { MediaType, TrailerInfo } from "@/types/tonight";
-import { youtubeEmbedUrl, youtubeWatchUrl } from "@/utils/trailers";
+import { trailerEmbedUrl, trailerWatchUrl } from "@/utils/trailers";
 import { EXTERNAL_LINK_REL } from "@/utils/providers";
 
 interface TrailerPayload {
@@ -113,7 +113,7 @@ export function TrailerDialog({
               <>
                 <div className="relative aspect-video overflow-hidden rounded-2xl border border-night-line bg-ink">
                   <iframe
-                    src={youtubeEmbedUrl(trailer.key)}
+                    src={trailerEmbedUrl(trailer)}
                     title={`Bande-annonce de ${title}`}
                     allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -123,12 +123,12 @@ export function TrailerDialog({
                 <p className="mt-3 text-xs text-muted-dim">
                   Vidéo fournie par TMDB ·{" "}
                   <a
-                    href={youtubeWatchUrl(trailer.key)}
+                    href={trailerWatchUrl(trailer)}
                     target="_blank"
                     rel={EXTERNAL_LINK_REL}
                     className="underline decoration-dotted hover:text-chalk"
                   >
-                    Ouvrir sur YouTube
+                    Ouvrir sur {trailer.site ?? "YouTube"}
                   </a>
                 </p>
               </>

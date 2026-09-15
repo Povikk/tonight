@@ -32,9 +32,10 @@ export function pickTrailer(
 ): TrailerInfo | null {
   if (!videos?.length) return null;
 
-  const playable = videos.filter(
-    (video) => video.site?.toLowerCase() === "youtube" && Boolean(video.key?.trim()),
-  );
+  const playable = videos.filter((video) => {
+    const site = video.site?.toLowerCase();
+    return (site === "youtube" || site === "vimeo") && Boolean(video.key?.trim());
+  });
   if (!playable.length) return null;
 
   const score = (video: TmdbVideo): number => {
@@ -53,6 +54,7 @@ export function pickTrailer(
   return {
     key: best.key,
     name: best.name || "Bande-annonce",
+    site: best.site.toLowerCase() === "vimeo" ? "Vimeo" : "YouTube",
     language: best.iso_639_1 ?? null,
     official: Boolean(best.official),
   };
@@ -73,4 +75,18 @@ export function youtubeEmbedUrl(key: string): string {
     // `youtube-nocookie` est déjà utilisé côté domaine.
   });
   return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(key)}?${params.toString()}`;
+}
+
+/** URL d'intégration adaptée à la plateforme annoncée par TMDB. */
+export function trailerEmbedUrl(trailer: Pick<TrailerInfo, "key" | "site">): string {
+  if (trailer.site === "Vimeo") {
+    return `https://player.vimeo.com/video/${encodeURIComponent(trailer.key)}?dnt=1&autoplay=0`;
+  }
+  return youtubeEmbedUrl(trailer.key);
+}
+
+/** URL publique de la vidéo sur sa plateforme d'origine. */
+export function trailerWatchUrl(trailer: Pick<TrailerInfo, "key" | "site">): string {
+  if (trailer.site === "Vimeo") return `https://vimeo.com/${encodeURIComponent(trailer.key)}`;
+  return youtubeWatchUrl(trailer.key);
 }

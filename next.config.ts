@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
               "object-src 'none'",
               "img-src 'self' data: https://image.tmdb.org",
-              "frame-src https://www.youtube-nocookie.com",
+              "frame-src https://www.youtube-nocookie.com https://player.vimeo.com",
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
               "connect-src 'self'",
