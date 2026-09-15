@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
 import type { Question, Questionnaire } from "@/data/questionnaires";
-import { moodLabel } from "@/data/moods";
+import { moodDefinition, moodLabel } from "@/data/moods";
 import { useCatalogOptions } from "@/hooks/useCatalogOptions";
 import { rememberProviders } from "@/storage";
 import type {
@@ -208,7 +208,7 @@ export function QuestionnaireRunner({ questionnaire }: { questionnaire: Question
               return (
                 <SelectCard
                   key={option.id}
-                  emoji={moodEmoji(mood)}
+                  emoji={moodDefinition(mood).emoji}
                   label={moodLabel(mood, questionnaire.mediaType)}
                   multi
                   selected={moods.includes(mood)}
@@ -292,34 +292,4 @@ export function QuestionnaireRunner({ questionnaire }: { questionnaire: Question
       </div>
     </div>
   );
-}
-
-function moodEmoji(mood: Mood): string {
-  const map: Record<string, string> = {
-    funny: "😂",
-    romance: "❤️",
-    feel_good: "😌",
-    easy_watch: "🛋️",
-    comfort: "🛋️",
-    mystery: "🧠",
-    investigation: "🔍",
-    mind_bending: "🤯",
-    action: "💥",
-    scifi: "🚀",
-    fantasy: "🧙",
-    adventure: "🗺️",
-    emotion: "😭",
-    suspense: "😱",
-    horror: "🩸",
-    drama: "🎭",
-    family: "👨‍👩‍👧",
-    beautiful: "🎨",
-    intense: "🔥",
-    historical: "🏰",
-    detective: "👮",
-    justice: "⚖️",
-    medical: "🏥",
-    workplace: "🏢",
-  };
-  return map[mood] ?? "✨";
 }

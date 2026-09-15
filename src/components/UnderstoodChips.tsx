@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MOVIE_MOODS, SERIES_MOODS, type DiscoveryLevel, type Mood, type TonightSearchPreferences, type UnderstoodChip } from "@/types/tonight";
-import { moodLabel } from "@/data/moods";
+import { moodDefinition, moodLabel } from "@/data/moods";
 import { useCatalogOptions } from "@/hooks/useCatalogOptions";
 import { Pill, TonightButton } from "./ui";
 
@@ -130,7 +130,8 @@ export function UnderstoodChips({
                         active ? "border-violet bg-violet/20 text-chalk" : "text-muted hover:text-chalk"
                       }`}
                     >
-                      {moodLabel(mood, mediaType)}
+                      <span aria-hidden>{moodDefinition(mood).emoji}</span>
+                      <span>{moodLabel(mood, mediaType)}</span>
                     </button>
                   </li>
                 );

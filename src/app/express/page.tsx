@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
 import { MOVIE_MOODS, SERIES_MOODS, type DiscoveryLevel, type MediaType, type Mood } from "@/types/tonight";
-import { moodLabel } from "@/data/moods";
+import { moodDefinition, moodLabel } from "@/data/moods";
 import { QuestionScreen, SelectCard } from "@/components/SelectCard";
 import { useTonight } from "@/components/providers/TonightProvider";
 
@@ -118,6 +118,7 @@ export default function ExpressPage() {
           {options.map((mood) => (
             <SelectCard
               key={mood}
+              emoji={moodDefinition(mood).emoji}
               label={moodLabel(mood, mediaType === "tv" ? "tv" : "movie")}
               multi
               selected={moods.includes(mood)}
