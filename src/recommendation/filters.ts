@@ -68,7 +68,7 @@ export function violatedConstraint(
   }
   if (candidate.mediaType === "tv" && preferences.targetEpisodeRuntime !== null) {
     if (unknownAndUnverified(candidate, candidate.episodeRuntime)) return "maxRuntime";
-    const tolerance = preferences.episodeRuntimeTolerance || 12;
+    const tolerance = preferences.episodeRuntimeTolerance ?? 12;
     if (candidate.episodeRuntime !== null && candidate.episodeRuntime > preferences.targetEpisodeRuntime + tolerance) {
       return "maxRuntime";
     }

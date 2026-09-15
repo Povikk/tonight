@@ -11,7 +11,7 @@
  * TMDB et garder la logique de scoring hors de l'UI.
  */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
 import { buildChips, removeChip } from "@/naturalLanguage/chips";
 import { pickNextOfferIndex } from "@/recommendation/nextOffer";
@@ -107,6 +107,12 @@ export function TonightProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"tmdb" | "demo" | null>(null);
+  /**
+   * Identifiant de la recherche courante. Un double clic ou une réponse lente
+   * ne doit jamais écraser un résultat plus récent : toute réponse dont
+   * l'identifiant n'est plus courant est ignorée.
+   */
+  const searchIdRef = useRef(0);
 
   /* Mode de données (TMDB ou démo) : utile pour prévenir honnêtement. */
   useEffect(() => {
@@ -129,6 +135,9 @@ export function TonightProvider({ children }: { children: React.ReactNode }) {
 
   const runSearch = useCallback(
     async (override?: TonightSearchPreferences, options: RunOptions = {}) => {
+      const requestId = searchIdRef.current + 1;
+      searchIdRef.current = requestId;
+
       const target = resolveSearchPreferences(preferences, override, options.source);
       setLoading(true);
       setError(null);
@@ -160,6 +169,7 @@ export function TonightProvider({ children }: { children: React.ReactNode }) {
           }),
         });
         const rawPayload: unknown = await res.json().catch(() => null);
+        if (requestId !== searchIdRef.current) return;
         if (!isRecommendApiResponse(rawPayload)) {
           setError(
             apiErrorMessage(rawPayload) ??
@@ -179,10 +189,11 @@ export function TonightProvider({ children }: { children: React.ReactNode }) {
         const nextExcluded = payload.top ? [...excluded, offerKey(payload.top)] : excluded;
         setSessionExcluded([...new Set(nextExcluded)]);
       } catch {
+        if (requestId !== searchIdRef.current) return;
         setError("Tonight n'arrive pas à joindre son moteur. Vérifie ta connexion et réessaie.");
         setResponse(null);
       } finally {
-        setLoading(false);
+        if (requestId === searchIdRef.current) setLoading(false);
       }
     },
     [preferences, sessionExcluded],

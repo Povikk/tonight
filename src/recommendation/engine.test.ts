@@ -160,6 +160,31 @@ describe("assouplissement intelligent (§37)", () => {
     expect(response.relaxations).toHaveLength(0);
   });
 
+  it("ne relâche rien quand l'utilisateur l'a explicitement interdit", async () => {
+    const preferences = createEmptyPreferences("natural_language", {
+      mediaType: "movie",
+      genres: [GENRE.DOCUMENTARY],
+      maxRuntime: 70,
+      minRating: 8.5,
+      minYear: 2015,
+      hardConstraints: ["mediaType", "requireGenre", "maxRuntime", "minRating", "minYear"],
+      confidence: 0.9,
+    });
+
+    const response = await recommend({
+      preferences,
+      context: { ...emptyContext, allowRelaxation: false },
+      seed: 5,
+    });
+
+    // Aucune tentative d'assouplissement n'a été jouée.
+    expect(response.relaxations).toHaveLength(0);
+    expect(response.fullyRelaxed).toBe(false);
+    expect(response.appliedPreferences.maxRuntime).toBe(70);
+    expect(response.appliedPreferences.minRating).toBe(8.5);
+    expect(response.appliedPreferences.hardConstraints).toContain("maxRuntime");
+  });
+
   it("sert d'abord les plateformes demandées quand c'est possible", async () => {
     const preferences = createEmptyPreferences("questionnaire", {
       mediaType: "movie",

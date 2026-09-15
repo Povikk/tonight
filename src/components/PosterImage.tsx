@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { POSTER_SIZES, BACKDROP_SIZES } from "@/utils/constants";
 import { backdropSrcSet, posterSrcSet, posterUrl, backdropUrl } from "@/services/tmdb/images";
 import { stableHash } from "@/utils/text";
@@ -92,6 +92,10 @@ export function PosterImage({
   const src = posterUrl(path, POSTER_SIZES.card);
   const srcSet = posterSrcSet(path);
 
+  // Une erreur de chargement ne doit pas condamner les œuvres suivantes : quand
+  // la source change, on retente.
+  useEffect(() => setFailed(false), [path]);
+
   if (!src || failed) {
     return <PosterPlaceholder title={title} mediaType={mediaType} className={className} />;
   }
@@ -130,6 +134,8 @@ export function BackdropImage({
 }) {
   const [failed, setFailed] = useState(false);
   const hero = backdropUrl(path, BACKDROP_SIZES.hero);
+
+  useEffect(() => setFailed(false), [path]);
 
   if (!hero || failed) {
     const [from, to] = duoFor(title);

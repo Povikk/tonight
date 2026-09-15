@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
 import { formatEpisodeRuntime, formatRating, formatRuntime, formatSeasons, formatSeriesYears, formatVoteCount, formatYear } from "@/utils/format";
@@ -286,7 +287,7 @@ export function DetailView({
           <ul className="flex snap-x gap-3 overflow-x-auto pb-2">
             {details.similar.slice(0, 10).map((item) => (
               <li key={`${item.mediaType}:${item.id}`} className="snap-start">
-                <a
+                <Link
                   href={detailHref(item)}
                   className="block w-32 rounded-2xl border border-night-line bg-night/50 p-2 transition-colors hover:border-violet/50"
                 >
@@ -301,7 +302,7 @@ export function DetailView({
                   </span>
                   <span className="mt-2 line-clamp-2 block text-xs text-chalk">{item.title}</span>
                   <span className="text-[0.68rem] text-muted-dim">⭐ {formatRating(item.voteAverage)}</span>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

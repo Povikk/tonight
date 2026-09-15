@@ -41,8 +41,11 @@ export async function resolveKeywordId(label: string): Promise<number | null> {
       const exact = payload.results.find((result) => normalizeKeyword(result.name) === normalized);
       return exact?.id ?? null;
     } catch (error) {
-      // Un keyword introuvable ne doit jamais casser une recherche.
-      if (error instanceof TmdbError) return null;
+      // Un keyword réellement inexistant (404) est un résultat valide : on le
+      // mémorise. En revanche, une panne transitoire (réseau, 429, 5xx) ne doit
+      // PAS être mise en cache 24 h, sinon TONIGHT perd le mood concerné bien
+      // après le rétablissement de TMDB.
+      if (error instanceof TmdbError && error.status === 404) return null;
       throw error;
     }
   });

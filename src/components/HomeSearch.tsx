@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSettings, updateSettings } from "@/storage";
 import type { MediaTypeChoice, ParsedRequest } from "@/types/tonight";
 import { SelectCard } from "./SelectCard";
@@ -37,15 +37,31 @@ export function HomeSearch() {
    */
   const [lastQuery, setLastQuery] = useState<string | null>(null);
 
+  /**
+   * Deux analyses ne doivent pas se marcher dessus (Entrée + clic, exemples) :
+   * seule la plus récente publie ses préférences et redirige.
+   */
+  const analysisIdRef = useRef(0);
+  const redirectTimerRef = useRef<number | null>(null);
+
   useEffect(() => {
     setLastQuery(getSettingsSafe());
   }, []);
+
+  useEffect(
+    () => () => {
+      if (redirectTimerRef.current !== null) window.clearTimeout(redirectTimerRef.current);
+    },
+    [],
+  );
 
   const analyze = async (query: string, forcedMediaType?: MediaTypeChoice) => {
     if (!query.trim()) {
       setError("Dis-moi juste ce que tu as envie de regarder ce soir.");
       return;
     }
+    const requestId = analysisIdRef.current + 1;
+    analysisIdRef.current = requestId;
     setLoading(true);
     setError(null);
     try {
@@ -55,6 +71,7 @@ export function HomeSearch() {
         body: JSON.stringify({ query, forcedMediaType, source: "natural_language" }),
       });
       const payload = (await response.json()) as ParsedRequest & { error?: string };
+      if (requestId !== analysisIdRef.current) return;
       if (payload.error) throw new Error(payload.error);
 
       setQuery(query);
@@ -66,12 +83,14 @@ export function HomeSearch() {
       // UNE question, jamais un questionnaire de douze étapes (§15).
       if (!payload.needsMediaTypeQuestion) {
         setAutoLaunching(true);
-        window.setTimeout(() => router.push("/comprendre"), 420);
+        if (redirectTimerRef.current !== null) window.clearTimeout(redirectTimerRef.current);
+        redirectTimerRef.current = window.setTimeout(() => router.push("/comprendre"), 420);
       }
     } catch {
+      if (requestId !== analysisIdRef.current) return;
       setError("Je n'ai pas réussi à analyser ta demande. Réessaie, ou passe par un questionnaire.");
     } finally {
-      setLoading(false);
+      if (requestId === analysisIdRef.current) setLoading(false);
     }
   };
 
@@ -150,7 +169,7 @@ export function HomeSearch() {
               setValue(example);
               void analyze(example);
             }}
-            className="t-chip text-left text-muted transition-colors hover:border-violet/50 hover:text-chalk"
+            className="t-chip t-chip-wrap text-left text-muted transition-colors hover:border-violet/50 hover:text-chalk"
           >
             « {example} »
           </button>

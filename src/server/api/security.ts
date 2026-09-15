@@ -21,19 +21,46 @@ declare global {
 const rateLimits = globalThis.tonightRateLimits ?? new Map<string, RateLimitEntry>();
 globalThis.tonightRateLimits = rateLimits;
 
+/**
+ * Identité réseau utilisée pour le quota.
+ *
+ * `cf-connecting-ip` est injecté et nettoyé par Cloudflare (cible de
+ * déploiement) : c'est la seule source réellement fiable. `x-real-ip` et
+ * `x-forwarded-for` sont falsifiables par le client si l'origine reste joignable
+ * directement, donc on ne les accepte que lorsqu'un proxy de confiance est
+ * déclaré explicitement. Sinon tous les clients partagent le bucket « unknown » :
+ * un quota strict vaut mieux qu'un quota contournable.
+ */
 function clientIp(request: Request): string {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-real-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown"
-  );
+  const cloudflare = request.headers.get("cf-connecting-ip")?.trim();
+  if (cloudflare) return cloudflare;
+
+  if (process.env.TONIGHT_TRUST_PROXY_HEADERS === "1") {
+    const real = request.headers.get("x-real-ip")?.trim();
+    if (real) return real;
+    const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    if (forwarded) return forwarded;
+  }
+
+  return "unknown";
 }
 
-function pruneExpiredEntries(now: number): void {
+/**
+ * Fait de la place pour une nouvelle entrée.
+ *
+ * On purge d'abord les entrées expirées, puis — si la table est toujours pleine
+ * d'entrées actives — on évince les plus anciennes (FIFO). Sans cette éviction
+ * ferme, une attaque distribuée faisait croître la `Map` sans borne.
+ */
+function makeRoom(now: number): void {
   if (rateLimits.size < MAX_RATE_LIMIT_ENTRIES) return;
   for (const [key, entry] of rateLimits) {
     if (entry.resetAt <= now) rateLimits.delete(key);
+  }
+  while (rateLimits.size >= MAX_RATE_LIMIT_ENTRIES) {
+    const oldest = rateLimits.keys().next().value;
+    if (oldest === undefined) break;
+    rateLimits.delete(oldest);
   }
 }
 
@@ -46,9 +73,10 @@ function pruneExpiredEntries(now: number): void {
  */
 export function enforceRateLimit(request: Request, policy: RateLimitPolicy): NextResponse | null {
   const now = Date.now();
-  pruneExpiredEntries(now);
-
   const key = `${policy.bucket}:${clientIp(request)}`;
+
+  if (!rateLimits.has(key)) makeRoom(now);
+
   const previous = rateLimits.get(key);
   const entry = !previous || previous.resetAt <= now
     ? { count: 1, resetAt: now + policy.windowMs }

@@ -9,7 +9,15 @@
  */
 
 export function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  if (typeof window === "undefined") return false;
+  // L'accès à `window.localStorage` peut lui-même lever une SecurityError
+  // (navigation privée, contexte sandboxé, politique de stockage) : on le
+  // protège avant tout autre appel.
+  try {
+    return typeof window.localStorage !== "undefined" && window.localStorage !== null;
+  } catch {
+    return false;
+  }
 }
 
 export function readJson<T>(key: string, fallback: T): T {
@@ -78,6 +86,16 @@ export function createLocalStore<T>(
     return raw as T;
   };
 
+  // Synchronisation inter-onglets : une écriture dans un autre onglet doit
+  // recharger le cache interne ET prévenir les composants React abonnés.
+  if (isBrowser()) {
+    bindCrossTab(key, () => {
+      cache = load();
+      hydrated = true;
+      listeners.forEach((listener) => listener());
+    });
+  }
+
   return {
     get() {
       if (!hydrated) {
@@ -128,7 +146,9 @@ export function notifyCrossTab(key: string): void {
 export function bindCrossTab(key: string, onChange: () => void): () => void {
   if (!isBrowser()) return () => undefined;
   const handler = (event: StorageEvent) => {
-    if (event.key === key) onChange();
+    // On écoute la clé réelle ET la clé `:ping` émise par `notifyCrossTab` :
+    // n'écouter que l'une des deux rendait la synchronisation inopérante.
+    if (event.key === key || event.key === `${key}:ping`) onChange();
   };
   window.addEventListener("storage", handler);
   return () => window.removeEventListener("storage", handler);

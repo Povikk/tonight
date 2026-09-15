@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "TONIGHT. Moins de choix. Plus de soirées. Recommandateur film/série en langage naturel (FR).",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "next dev -p 3777",
     "build": "next build",

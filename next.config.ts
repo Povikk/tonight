@@ -5,7 +5,7 @@ import type { NextConfig } from "next";
  *
  * Le token TMDB n'est JAMAIS exposé au navigateur : toutes les requêtes TMDB
  * passent par les routes serveur de `src/app/api/*` ou par les services
- * `src/lib/catalog/*` utilisés côté serveur (route handlers / server components).
+ * `src/services/catalog/*` utilisés côté serveur (route handlers / server components).
  * Seules les variables préfixées NEXT_PUBLIC_ seraient visibles côté client, et
  * nous n'en utilisons aucune pour TMDB.
  */
@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "DENY" },
+          // Ignoré en clair sur localhost, appliqué dès que le site est servi en HTTPS.
+          { key: "Strict-Transport-Security", value: "max-age=31536000" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           {
             key: "Content-Security-Policy",

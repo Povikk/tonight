@@ -15,7 +15,7 @@
  */
 
 import { getCatalog } from "@/services/catalog";
-import type { CatalogMode } from "@/services/catalog/types";
+import type { CatalogMode, PoolRequest } from "@/services/catalog/types";
 import type {
   Candidate,
   RecommendResponse,
@@ -25,7 +25,7 @@ import type {
 } from "@/types/tonight";
 import { RECOMMENDATION_COUNT } from "@/utils/constants";
 import { buildExplanation } from "./explain";
-import { applyHardFilters, excludeSession } from "./filters";
+import { applyHardFilters } from "./filters";
 import {
   scoreCandidate,
   selectRecommendations,
@@ -63,8 +63,11 @@ function blockedIds(context: RecommendationContext): string[] {
   ];
 }
 
-async function runAttempt(attempt: Attempt, options: RecommendOptions): Promise<AttemptOutcome | null> {
-  const catalog = getCatalog();
+async function runAttempt(
+  attempt: Attempt,
+  options: RecommendOptions,
+  buildPool: (request: PoolRequest) => Promise<Candidate[]>,
+): Promise<AttemptOutcome | null> {
   const { context } = options;
   const blockedKeys = blockedIds(context);
   const mediaTypes: Array<"movie" | "tv"> =
@@ -72,15 +75,13 @@ async function runAttempt(attempt: Attempt, options: RecommendOptions): Promise<
 
   const pools = await Promise.all(
     mediaTypes.map((mediaType) =>
-      catalog
-        .buildPool({
-          mediaType,
-          prefs: attempt.preferences,
-          soft: attempt.soft,
-          skipProviders: attempt.skipProviders,
-          excludedKeys: blockedKeys,
-        })
-        .catch(() => [] as Candidate[]),
+      buildPool({
+        mediaType,
+        prefs: attempt.preferences,
+        soft: attempt.soft,
+        skipProviders: attempt.skipProviders,
+        excludedKeys: blockedKeys,
+      }).catch(() => [] as Candidate[]),
     ),
   );
 
@@ -160,12 +161,34 @@ function toResponse(outcome: AttemptOutcome | null, options: RecommendOptions): 
  */
 export async function recommend(options: RecommendOptions): Promise<RecommendResponse> {
   const catalog = getCatalog();
-  const attempts = buildAttempts(options.preferences);
+
+  // Plusieurs tentatives d'assouplissement partagent souvent exactement les mêmes
+  // paramètres de collecte (changer le statut, les saisons ou lâcher un genre ne
+  // modifie pas `discover`). On mutualise donc les pools identiques : c'est le
+  // principal levier pour ne pas rejouer (et repayer) les mêmes appels TMDB.
+  const poolCache = new Map<string, Promise<Candidate[]>>();
+  const buildPool = (request: PoolRequest): Promise<Candidate[]> => {
+    const key = JSON.stringify(request);
+    let pending = poolCache.get(key);
+    if (!pending) {
+      pending = catalog.buildPool(request);
+      poolCache.set(key, pending);
+    }
+    return pending;
+  };
+
+  // `allowRelaxation === false` : l'utilisateur a explicitement demandé à ce que
+  // ses critères ne soient PAS relâchés. On ne joue alors que la tentative
+  // stricte, conformément au contrat de l'API.
+  const attempts =
+    options.context.allowRelaxation === false
+      ? buildAttempts(options.preferences).slice(0, 1)
+      : buildAttempts(options.preferences);
 
   let best: AttemptOutcome | null = null;
 
   for (const attempt of attempts) {
-    const outcome = await runAttempt(attempt, options);
+    const outcome = await runAttempt(attempt, options, buildPool);
     if (!outcome) continue;
 
     if (outcome.scored.length >= MIN_RESULTS) {

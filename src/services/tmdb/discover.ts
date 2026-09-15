@@ -51,7 +51,13 @@ export function buildDiscoverParams(
   const included = joinIds(prefs.genres.map((id) => toGenreForMedia(id, mediaType)));
   if (included) params.with_genres = included;
 
-  const excluded = new Set(prefs.excludedGenres.map((id) => toGenreForMedia(id, mediaType)));
+  // Les genres exclus « durs » doivent être retirés dès `discover` : sinon ils
+  // occupent les places d'enrichissement avant d'être rejetés localement, ce qui
+  // peut masquer des candidats conformes situés plus bas.
+  const excluded = new Set([
+    ...prefs.excludedGenres.map((id) => toGenreForMedia(id, mediaType)),
+    ...prefs.hardExcludedGenres.map((id) => toGenreForMedia(id, mediaType)),
+  ]);
   if (prefs.excludeAnimation) excluded.add(GENRE.ANIMATION);
   if (prefs.excludeDocumentary) excluded.add(GENRE.DOCUMENTARY);
   if (excluded.size) params.without_genres = joinIds([...excluded]);

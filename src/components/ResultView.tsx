@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { canonicalGenres } from "@/utils/canonical";
 import { createEmptyPreferences } from "@/data/defaultPreferences";
@@ -138,6 +139,7 @@ export function ResultView() {
     rememberCurrent,
     resetSession,
   } = useTonight();
+  const router = useRouter();
 
   const [refusalOpen, setRefusalOpen] = useState(false);
   const [started, setStarted] = useState(false);
@@ -198,7 +200,16 @@ export function ResultView() {
           >
             ASSOUPLIR MES CRITÈRES
           </TonightButton>
-          <TonightButton variant="ghost" onClick={resetSession}>
+          <TonightButton
+            variant="ghost"
+            onClick={() => {
+              // « Repartir de zéro » doit réellement ramener à l'accueil : vider
+              // la session sans changer d'écran laissait l'utilisateur bloqué sur
+              // la vue « aucun résultat ».
+              resetSession();
+              router.push("/");
+            }}
+          >
             Repartir de zéro
           </TonightButton>
         </div>

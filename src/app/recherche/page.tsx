@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { isFavorite, toggleFavorite, updateHistoryStatus } from "@/storage";
+import { isFavorite, recordRecommendation, toggleFavorite } from "@/storage";
 import { PosterImage } from "@/components/PosterImage";
 import { EmptyState } from "@/components/ui";
 import { formatRating, formatSeriesYears, formatYear, mediaLabel } from "@/utils/format";
@@ -62,7 +62,26 @@ export default function RecherchePage() {
         genres: candidate.genres,
       });
     } else {
-      updateHistoryStatus(key, status);
+      // Un résultat de recherche manuelle n'est généralement pas encore dans
+      // l'historique : `updateHistoryStatus` seul ne stockait donc rien et le
+      // « Noté ✓ » était mensonger. On enregistre l'entrée (upsert).
+      recordRecommendation({
+        key,
+        id: candidate.id,
+        mediaType: candidate.mediaType,
+        title: candidate.title,
+        originalTitle: candidate.originalTitle,
+        year: candidate.year,
+        posterPath: candidate.posterPath,
+        overview: candidate.overview,
+        genres: candidate.genres,
+        matchPercent: 0,
+        status,
+        runtime: candidate.runtime,
+        seasons: candidate.seasons,
+        popularity: candidate.popularity,
+        providers: candidate.providers.map((provider) => provider.providerId),
+      });
     }
     setTouched((previous) => new Set(previous).add(`${key}:${status}`));
   };

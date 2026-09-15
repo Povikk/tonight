@@ -61,7 +61,8 @@ de la recommandation est **générée à partir des critères réels** du score.
 
 ## 3. Installation
 
-Prérequis : **Node.js 20+** et npm.
+Prérequis : **Node.js 22.12+** et npm (Vinext/Cloudflare et Vitest exigent Node ≥ 22 ; le
+projet déclare ce minimum dans `engines`).
 
 ```bash
 npm install

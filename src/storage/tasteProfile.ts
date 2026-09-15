@@ -124,7 +124,12 @@ export function computeTasteProfile(): TasteProfile {
     preferredDiscovery,
     preferredSeasons: average(seasons),
     providerIds: [...providerCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id),
-    watchedIds: history.filter((entry) => entry.status === "watched").map((entry) => entry.key),
+    // Un favori a forcément été vu/connu : l'inclure évite qu'une œuvre déjà
+    // vue puis mise en favori soit de nouveau recommandée (le statut
+    // d'historique, exclusif, a pu perdre l'information « vu »).
+    watchedIds: history
+      .filter((entry) => entry.status === "watched" || entry.status === "favorite")
+      .map((entry) => entry.key),
     favoriteIds: favorites.map((entry) => entry.key),
     refusedIds: history.filter((entry) => entry.status === "refused").map((entry) => entry.key),
     refusedGenreCounts,

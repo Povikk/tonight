@@ -47,4 +47,18 @@ describe("public API guards", () => {
     expect(response?.status).toBe(429);
     expect(response?.headers.get("retry-after")).toBeTruthy();
   });
+
+  it("ignore les en-têtes d'IP falsifiables par le client", () => {
+    const policy = { bucket: `spoof-${Date.now()}`, limit: 1, windowMs: 60_000 };
+    const first = new Request("http://localhost/api/test", {
+      headers: { "x-forwarded-for": "198.51.100.1", "x-real-ip": "198.51.100.1" },
+    });
+    const second = new Request("http://localhost/api/test", {
+      headers: { "x-forwarded-for": "203.0.113.9", "x-real-ip": "203.0.113.9" },
+    });
+
+    expect(enforceRateLimit(first, policy)).toBeNull();
+    // Changer d'en-tête ne doit PAS donner un nouveau quota.
+    expect(enforceRateLimit(second, policy)?.status).toBe(429);
+  });
 });

@@ -70,7 +70,29 @@ export const preferencesSchema = z.object({
   confidence: z.number().min(0).max(1).optional(),
   source: source.optional(),
   rawQuery: z.string().max(600).optional(),
-}).strict();
+}).strict()
+  // Bornes incohérentes : un payload valide au sens du type peut décrire une
+  // recherche impossible (ex. « entre 2020 et 1990 ») et faire échouer toutes
+  // les tentatives. On les refuse dès la frontière.
+  .refine(
+    (value) => value.minYear == null || value.maxYear == null || value.minYear <= value.maxYear,
+    { message: "L'année minimum ne peut pas dépasser l'année maximum.", path: ["minYear"] },
+  )
+  .refine(
+    (value) =>
+      value.softMinYear == null || value.softMaxYear == null || value.softMinYear <= value.softMaxYear,
+    { message: "La période souple est incohérente.", path: ["softMinYear"] },
+  )
+  .refine(
+    (value) =>
+      value.minRuntime == null || value.maxRuntime == null || value.minRuntime <= value.maxRuntime,
+    { message: "La durée minimum ne peut pas dépasser la durée maximum.", path: ["minRuntime"] },
+  )
+  .refine(
+    (value) =>
+      value.minSeasons == null || value.maxSeasons == null || value.minSeasons <= value.maxSeasons,
+    { message: "Le nombre de saisons minimum ne peut pas dépasser le maximum.", path: ["minSeasons"] },
+  );
 const refusalReason = z.enum([
   "too_old", "too_recent", "too_long", "too_serious", "too_light", "too_known",
   "not_known_enough", "wrong_mood", "wrong_genre", "already_seen", "not_available",
@@ -112,7 +134,10 @@ const tasteProfile = z.object({
     watched: z.number().int().nonnegative().max(100_000),
     favorites: z.number().int().nonnegative().max(100_000),
   }).strict(),
-}).strict();
+}).strict().refine(
+  (value) => !value.preferredEra || value.preferredEra.min <= value.preferredEra.max,
+  { message: "La période préférée du profil est incohérente.", path: ["preferredEra"] },
+);
 
 export const recommendBodySchema = z.object({
   preferences: preferencesSchema.optional(),

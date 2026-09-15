@@ -201,6 +201,13 @@ export default function MesGoutsPage() {
         <TonightButton
           variant="danger"
           onClick={() => {
+            if (
+              !window.confirm(
+                "Effacer tout ce que TONIGHT sait de toi (historique, favoris, refus, goûts) ? Cette action est irréversible.",
+              )
+            ) {
+              return;
+            }
             settingsStore.set((previous) => ({
               ...previous,
               tasteOverrides: { likedGenres: [], dislikedGenres: [] },

@@ -181,6 +181,15 @@ body {
   white-space: nowrap;
 }
 
+/* Chip contenant une phrase : elle doit pouvoir revenir à la ligne sur petit
+   écran (le `nowrap` global la faisait déborder, coupée par overflow-x). */
+.t-chip-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  text-align: left;
+}
+
 /* Barre de progression du questionnaire */
 .t-progress-fill {
   transition: width 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);

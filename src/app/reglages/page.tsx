@@ -108,6 +108,13 @@ export default function ReglagesPage() {
           <TonightButton
             variant="danger"
             onClick={() => {
+              if (
+                !window.confirm(
+                  "Supprimer définitivement historique, favoris, refus et réglages de cet appareil ? Cette action est irréversible.",
+                )
+              ) {
+                return;
+              }
               clearAllData();
               setMessage("Tout est effacé. TONIGHT repart comme au premier lancement.");
             }}

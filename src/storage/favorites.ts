@@ -3,7 +3,7 @@
 import type { MediaType } from "@/types/tonight";
 import { STORAGE_KEYS, storageKey } from "./storageVersion";
 import { createLocalStore } from "./safeStorage";
-import { historyKey, updateHistoryStatus } from "./history";
+import { historyKey, historyStore, recordRecommendation, updateHistoryStatus } from "./history";
 
 export interface FavoriteEntry {
   key: string;
@@ -50,11 +50,34 @@ export function toggleFavorite(entry: Omit<FavoriteEntry, "addedAt">): boolean {
   const exists = isFavorite(entry.mediaType, entry.id);
   if (exists) {
     favoritesStore.set((previous) => previous.filter((item) => item.key !== entry.key));
+    // Un retrait de favori ne doit pas laisser un statut « favori » orphelin
+    // dans l'historique : le profil continuerait de le compter comme tel.
+    if (historyStore.get().some((item) => item.key === entry.key && item.status === "favorite")) {
+      updateHistoryStatus(entry.key, "accepted");
+    }
     return false;
   }
   favoritesStore.set((previous) => [{ ...entry, addedAt: new Date().toISOString() }, ...previous]);
-  // Un favori est aussi une entrée d'historique marquée « favori ».
-  updateHistoryStatus(entry.key, "favorite");
+  // Un favori est aussi une entrée d'historique marquée « favori ». On la crée
+  // si elle n'existe pas encore (favori ajouté depuis une fiche ou une
+  // recherche manuelle), sinon on la met à jour.
+  if (historyStore.get().some((item) => item.key === entry.key)) {
+    updateHistoryStatus(entry.key, "favorite");
+  } else {
+    recordRecommendation({
+      key: entry.key,
+      id: entry.id,
+      mediaType: entry.mediaType,
+      title: entry.title,
+      originalTitle: entry.title,
+      year: entry.year,
+      posterPath: entry.posterPath,
+      overview: "",
+      genres: entry.genres,
+      matchPercent: 0,
+      status: "favorite",
+    });
+  }
   return true;
 }
 

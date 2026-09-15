@@ -50,4 +50,19 @@ describe("recommendBodySchema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("refuse des bornes incohérentes", () => {
+    expect(recommendBodySchema.safeParse({ preferences: { minYear: 2020, maxYear: 1990 } }).success).toBe(false);
+    expect(recommendBodySchema.safeParse({ preferences: { minRuntime: 120, maxRuntime: 90 } }).success).toBe(false);
+    expect(recommendBodySchema.safeParse({ preferences: { minSeasons: 5, maxSeasons: 2 } }).success).toBe(false);
+    expect(recommendBodySchema.safeParse({ preferences: { minYear: 1990, maxYear: 2020 } }).success).toBe(true);
+  });
+
+  it("refuse une période incohérente dans le profil de goûts", () => {
+    expect(
+      recommendBodySchema.safeParse({
+        context: { profile: { ...emptyTasteProfile, preferredEra: { min: 2020, max: 1990 } } },
+      }).success,
+    ).toBe(false);
+  });
 });

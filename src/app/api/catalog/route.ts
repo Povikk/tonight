@@ -20,7 +20,18 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const kind = url.searchParams.get("kind") ?? "genres";
-  const mediaType = url.searchParams.get("mediaType") === "tv" ? "tv" : "movie";
+  const mediaType = url.searchParams.get("mediaType") ?? "movie";
+
+  // Paramètres invalides : on répond explicitement plutôt que de les transformer
+  // silencieusement (l'ancien comportement mettait en cache une réponse de forme
+  // inattendue et masquait les fautes du client).
+  if (kind !== "genres" && kind !== "providers") {
+    return NextResponse.json({ error: "Paramètre « kind » invalide." }, { status: 400 });
+  }
+  if (mediaType !== "movie" && mediaType !== "tv") {
+    return NextResponse.json({ error: "Paramètre « mediaType » invalide." }, { status: 400 });
+  }
+
   const catalog = getCatalog();
 
   try {

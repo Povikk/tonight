@@ -23,21 +23,40 @@ export function AdvancedCriteria({
   const toggleGenre = (genreId: number) => {
     const required = value.genres ?? [];
     const excluded = value.excludedGenres ?? [];
+    const nextRequired = required.includes(genreId)
+      ? required.filter((id) => id !== genreId)
+      : [...required, genreId];
+    const constraints = new Set(value.hardConstraints ?? []);
+    if (nextRequired.length) constraints.add("requireGenre");
+    else constraints.delete("requireGenre");
     onChange({
-      genres: required.includes(genreId) ? required.filter((id) => id !== genreId) : [...required, genreId],
+      genres: nextRequired,
       excludedGenres: excluded.filter((id) => id !== genreId),
-      hardConstraints: [...new Set([...(value.hardConstraints ?? []), "requireGenre" as const])],
+      hardConstraints: [...constraints],
     });
   };
 
   const toggleExcluded = (genreId: number) => {
     const excluded = value.excludedGenres ?? [];
+    const hardExcluded = value.hardExcludedGenres ?? [];
     const required = value.genres ?? [];
+    const removing = excluded.includes(genreId);
+    const nextExcluded = removing
+      ? excluded.filter((id) => id !== genreId)
+      : [...excluded, genreId];
+    // La désélection doit retirer l'exclusion DURE, sinon le moteur continue
+    // d'écarter le genre alors que l'interface l'affiche comme désactivé.
+    const nextHard = removing
+      ? hardExcluded.filter((id) => id !== genreId)
+      : [...new Set([...hardExcluded, genreId])];
+    const constraints = new Set(value.hardConstraints ?? []);
+    if (nextExcluded.length) constraints.add("excludeGenres");
+    else constraints.delete("excludeGenres");
     onChange({
-      excludedGenres: excluded.includes(genreId) ? excluded.filter((id) => id !== genreId) : [...excluded, genreId],
-      hardExcludedGenres: [...new Set([...(value.hardExcludedGenres ?? []), genreId])],
+      excludedGenres: nextExcluded,
+      hardExcludedGenres: nextHard,
       genres: required.filter((id) => id !== genreId),
-      hardConstraints: [...new Set([...(value.hardConstraints ?? []), "excludeGenres" as const])],
+      hardConstraints: [...constraints],
     });
   };
 
