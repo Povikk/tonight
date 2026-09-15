@@ -28,7 +28,11 @@ export interface DateDetection {
 function parseYear(raw: string): number | null {
   const value = Number.parseInt(raw, 10);
   if (!Number.isFinite(value)) return null;
-  if (value < 1900 || value > CURRENT_YEAR + 2) return null;
+  // Ne pas valider une année explicite contre l'horloge du runtime edge :
+  // selon le contexte d'initialisation du bundle Worker, cette horloge pouvait
+  // rendre toutes les années modernes invalides. La plage civile suffit à
+  // protéger le parser tout en restant déterministe entre tests et production.
+  if (value < 1900 || value > 2100) return null;
   return value;
 }
 

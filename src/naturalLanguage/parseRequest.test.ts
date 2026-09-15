@@ -137,6 +137,19 @@ describe("parseNaturalLanguageRequest, cas du cahier des charges", () => {
     expect(preferences.maxYear).toBe(1999);
   });
 
+  it("« Un film d'horreur depuis 2020 » reste horrifique et ouvert sur l'avenir", () => {
+    const { preferences } = parse("Un film d'horreur depuis 2020");
+    expect(preferences.mediaType).toBe("movie");
+    expect(preferences.genres).toContain(GENRE.HORROR);
+    expect(preferences.moods).toContain("horror");
+    expect(preferences.moods).not.toContain("heavy");
+    expect(preferences.excludedMoods).not.toContain("dark");
+    expect(preferences.minYear).toBe(2020);
+    expect(preferences.maxYear).toBeNull();
+    expect(preferences.hardConstraints).toContain("minYear");
+    expect(preferences.hardConstraints).not.toContain("maxYear");
+  });
+
   it("« Une mini-série avec une vraie fin »", () => {
     const { preferences } = parse("Une mini-série avec une vraie fin");
     expect(preferences.mediaType).toBe("tv");

@@ -190,7 +190,7 @@ export const OLD_PHRASES = [
 
 /** Décennies explicites. */
 export const DECADE_PHRASES: Array<{ phrases: string[]; min: number; max: number }> = [
-  { phrases: ["2020s", "annees 2020", "années 2020", "années 20", "2020"], min: 2020, max: 2029 },
+  { phrases: ["2020s", "annees 2020", "années 2020", "années 20"], min: 2020, max: 2029 },
   { phrases: ["2010s", "annees 2010", "années 2010", "années 10"], min: 2010, max: 2019 },
   { phrases: ["2000s", "annees 2000", "années 2000", "années 2000", "les 2000"], min: 2000, max: 2009 },
   { phrases: ["90s", "1990s", "annees 90", "années 90", "les 90", "quatre-vingt-dix"], min: 1990, max: 1999 },

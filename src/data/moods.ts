@@ -333,7 +333,7 @@ const negativeMoods: MoodDefinition[] = [
     genres: [GENRE.DRAMA, GENRE.WAR, GENRE.HISTORY],
     keywordLabels: ["gritty realism", "dark"],
     keywordSlugs: ["heavy"],
-    textHints: ["éprouvant", "eprouvant", "bouleversant", "traumatisme", "lourd", "accablant", "déchirant", "dechirant", "drame familial", "souffrance", "horreur"],
+    textHints: ["éprouvant", "eprouvant", "bouleversant", "traumatisme", "lourd", "accablant", "déchirant", "dechirant", "drame familial", "souffrance"],
     siblings: [],
   },
   {

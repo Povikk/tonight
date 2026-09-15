@@ -28,6 +28,8 @@ export interface PoolRequest {
   soft?: boolean;
   /** Ignore le filtre plateformes (assouplissement §37). */
   skipProviders?: boolean;
+  /** Candidats déjà vus/refusés : la source enrichit d'abord les suivants. */
+  excludedKeys?: string[];
 }
 
 export interface ProviderOption {

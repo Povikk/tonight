@@ -178,6 +178,25 @@ function preRankScore(candidate: Candidate, prefs: TonightSearchPreferences): nu
 }
 
 /**
+ * Classe les fiches à enrichir en donnant la priorité aux œuvres encore
+ * inédites dans la session. Le pool TMDB brut est bien plus large que la
+ * limite d'enrichissement : cette rotation permet à YOLO de servir de nouveaux
+ * lots sans augmenter le nombre de sous-requêtes du Worker.
+ */
+export function rankPoolForEnrichment(
+  candidates: Candidate[],
+  prefs: TonightSearchPreferences,
+  excludedKeys: string[] = [],
+): Candidate[] {
+  const excluded = new Set(excludedKeys);
+  return [...candidates].sort((a, b) => {
+    const aExcluded = excluded.has(`${a.mediaType}:${a.id}`) ? 1 : 0;
+    const bExcluded = excluded.has(`${b.mediaType}:${b.id}`) ? 1 : 0;
+    return aExcluded - bExcluded || preRankScore(b, prefs) - preRankScore(a, prefs);
+  });
+}
+
+/**
  * Proximité d'un candidat avec la demande, à partir de ce que `discover`
  * connaît déjà (genres + keywords rapportés par les pools de mood).
  *
@@ -322,7 +341,7 @@ export function createTmdbCatalog(): CatalogSource {
   return {
     mode: "tmdb",
 
-    async buildPool({ mediaType, prefs, soft = false, skipProviders = false }: PoolRequest) {
+    async buildPool({ mediaType, prefs, soft = false, skipProviders = false, excludedKeys = [] }: PoolRequest) {
       const { buildDiscoverParams } = await import("@/services/tmdb/discover");
       const jobs = buildJobs(prefs);
 
@@ -443,9 +462,7 @@ export function createTmdbCatalog(): CatalogSource {
       }
 
       // Tri par pertinence approximative puis enrichissement des meilleurs.
-      const ranked = [...collected.values()].sort(
-        (a, b) => preRankScore(b, prefs) - preRankScore(a, prefs),
-      );
+      const ranked = rankPoolForEnrichment([...collected.values()], prefs, excludedKeys);
       const toEnrich = ranked.slice(0, ENRICH_LIMIT);
 
       const enriched = await mapLimit(toEnrich, CONCURRENCY, async (candidate) => {

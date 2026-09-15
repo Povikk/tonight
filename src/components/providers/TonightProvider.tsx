@@ -18,6 +18,7 @@ import { pickNextOfferIndex } from "@/recommendation/nextOffer";
 import { getFeedback, getSettings, recordRecommendation } from "@/storage";
 import { computeTasteProfile } from "@/storage/tasteProfile";
 import { apiErrorMessage, isRecommendApiResponse } from "@/utils/recommendResponse";
+import { resolveSearchPreferences } from "./searchPreferences";
 import type {
   MediaTypeChoice,
   PreferencesSource,
@@ -128,15 +129,15 @@ export function TonightProvider({ children }: { children: React.ReactNode }) {
 
   const runSearch = useCallback(
     async (override?: TonightSearchPreferences, options: RunOptions = {}) => {
-      const target = override ?? preferences;
+      const target = resolveSearchPreferences(preferences, override, options.source);
       setLoading(true);
       setError(null);
 
-      // Les critères issus d'un choix explicite (questionnaire, express, yolo)
-      // ne doivent pas être re-signalés comme « compris » au sens du parser.
-      if (options.source && options.source !== target.source) {
-        setPreferencesState({ ...target, source: options.source });
-      }
+      // `override` est la nouvelle recherche de référence, pas seulement le
+      // payload d'un appel isolé. Sans cette mise à jour, Express, YOLO et les
+      // questionnaires affichaient un premier résultat correct, puis
+      // « Affiner » / le lot suivant repartaient avec l'ancien parcours.
+      setPreferencesState(target);
 
       // Exclusions CUMULÉES de la session : une recherche complémentaire ne doit
       // jamais remettre dans le jeu ce qui a déjà été proposé ou écarté.
@@ -152,7 +153,7 @@ export function TonightProvider({ children }: { children: React.ReactNode }) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            preferences: options.source ? { ...target, source: options.source } : target,
+            preferences: target,
             context: buildEngineContext(excluded),
             count: 8,
             seed: options.seed ?? Math.floor(Math.random() * 100_000),

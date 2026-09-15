@@ -65,7 +65,8 @@ function blockedIds(context: RecommendationContext): string[] {
 
 async function runAttempt(attempt: Attempt, options: RecommendOptions): Promise<AttemptOutcome | null> {
   const catalog = getCatalog();
-  const { preferences, context } = options;
+  const { context } = options;
+  const blockedKeys = blockedIds(context);
   const mediaTypes: Array<"movie" | "tv"> =
     attempt.preferences.mediaType === "any" ? ["movie", "tv"] : [attempt.preferences.mediaType];
 
@@ -77,6 +78,7 @@ async function runAttempt(attempt: Attempt, options: RecommendOptions): Promise<
           prefs: attempt.preferences,
           soft: attempt.soft,
           skipProviders: attempt.skipProviders,
+          excludedKeys: blockedKeys,
         })
         .catch(() => [] as Candidate[]),
     ),
@@ -92,7 +94,7 @@ async function runAttempt(attempt: Attempt, options: RecommendOptions): Promise<
   const poolSize = merged.size;
   if (poolSize === 0) return null;
 
-  const blocked = new Set(blockedIds(context));
+  const blocked = new Set(blockedKeys);
   const available = [...merged.values()].filter(
     (candidate) => !blocked.has(`${candidate.mediaType}:${candidate.id}`),
   );
