@@ -140,6 +140,7 @@ export function ResultView() {
   const [started, setStarted] = useState(false);
   const [refinement, setRefinement] = useState("");
   const [refinementError, setRefinementError] = useState<string | null>(null);
+  const [customRefinementOpen, setCustomRefinementOpen] = useState(false);
 
   if (error && !current) {
     return (
@@ -228,8 +229,8 @@ export function ResultView() {
     });
   };
 
-  const refine = async () => {
-    const query = refinement.trim();
+  const refine = async (suggestion?: string) => {
+    const query = (suggestion ?? refinement).trim();
     if (!query) {
       setRefinementError("Écris juste ce que tu veux changer.");
       return;
@@ -243,7 +244,7 @@ export function ResultView() {
         body: JSON.stringify({
           query,
           forcedMediaType: preferences.mediaType,
-          source: "yolo",
+          source: preferences.source,
         }),
       });
       const parsed = (await parseResponse.json()) as ParsedRequest & { error?: string };
@@ -257,7 +258,7 @@ export function ResultView() {
       setStarted(false);
       setRefinement("");
       await runSearch(refinedPreferences, {
-        source: "yolo",
+        source: preferences.source,
         exclude: offers.map((offer) => `${offer.candidate.mediaType}:${offer.candidate.id}`),
       });
     } catch {
@@ -428,45 +429,89 @@ export function ResultView() {
         </button>
       </div>
 
-      {preferences.source === "yolo" ? (
-        <section aria-labelledby="refine-title" className="t-panel space-y-3 p-4 sm:p-5">
+      <section
+        aria-labelledby="refine-title"
+        className="relative overflow-hidden rounded-3xl border border-violet/45 bg-violet/10 p-5 shadow-[0_18px_60px_-35px_rgba(139,92,246,0.75)] sm:p-6"
+      >
+        <div aria-hidden className="absolute -right-16 -top-20 h-48 w-48 rounded-full bg-violet/15 blur-3xl" />
+        <div className="relative space-y-4">
           <div className="space-y-1">
-            <h2 id="refine-title" className="font-display text-base font-semibold text-chalk">
-              Pas tout à fait ? Affine le choix.
-            </h2>
-            <p className="text-xs text-muted-dim">
-              Par exemple : « plus récent », « qui fait moins peur » ou « moins de 2 heures ».
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-soft">
+              Affine la proposition
             </p>
+            <h2 id="refine-title" className="font-display text-xl font-semibold text-chalk sm:text-2xl">
+              Tu veux quelque chose d'un peu différent ?
+            </h2>
           </div>
-          <form
-            className="flex flex-col gap-2 sm:flex-row"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void refine();
-            }}
+
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {[
+              { emoji: "🆕", label: "Plus récent", query: "plus récent" },
+              { emoji: "☀️", label: "Plus léger", query: "plus léger et facile à regarder" },
+              {
+                emoji: "⏱️",
+                label: "Plus court",
+                query: isMovie ? "pas trop long" : "une petite série avec peu de saisons",
+              },
+              { emoji: "😌", label: "Moins effrayant", query: "qui fait moins peur" },
+              { emoji: "⭐", label: "Mieux noté", query: "très bien noté" },
+              { emoji: "💎", label: "Plus méconnu", query: "une pépite peu connue" },
+            ].map((option) => (
+              <button
+                key={option.label}
+                type="button"
+                disabled={loading}
+                onClick={() => void refine(option.query)}
+                className="flex min-h-14 items-center gap-2 rounded-2xl border border-night-line bg-night/75 px-3 py-3 text-left text-sm font-semibold text-chalk transition-all hover:-translate-y-0.5 hover:border-violet/70 hover:bg-violet/15 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-40 sm:px-4"
+              >
+                <span aria-hidden className="text-lg">{option.emoji}</span>
+                <span>{option.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            aria-expanded={customRefinementOpen}
+            onClick={() => setCustomRefinementOpen((open) => !open)}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-violet/50 bg-violet/15 px-5 py-2.5 text-sm font-semibold text-chalk transition-colors hover:bg-violet/25"
           >
-            <label htmlFor="yolo-refinement" className="sr-only">
-              Affiner la recommandation
-            </label>
-            <input
-              id="yolo-refinement"
-              type="text"
-              value={refinement}
-              onChange={(event) => setRefinement(event.target.value)}
-              placeholder="Je voudrais quelque chose de…"
-              maxLength={600}
-              disabled={loading}
-              className="min-w-0 flex-1 rounded-full border border-night-line bg-night/70 px-4 py-2.5 text-sm text-chalk placeholder:text-muted-dim focus:border-violet/60 focus:outline-none"
-            />
-            <TonightButton type="submit" disabled={loading || !refinement.trim()}>
-              {loading ? "J'AFFINE…" : "AFFINER"}
-            </TonightButton>
-          </form>
+            ✍️ AUTRE DEMANDE
+          </button>
+
+          {customRefinementOpen ? (
+            <form
+              className="animate-fade-up flex flex-col gap-2 sm:flex-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void refine();
+              }}
+            >
+              <label htmlFor="result-refinement" className="sr-only">
+                Affiner la recommandation
+              </label>
+              <input
+                id="result-refinement"
+                type="text"
+                value={refinement}
+                onChange={(event) => setRefinement(event.target.value)}
+                placeholder="Ex. moins triste, sur Netflix, après 2020…"
+                maxLength={600}
+                disabled={loading}
+                autoFocus
+                className="min-w-0 flex-1 rounded-full border border-night-line bg-night/80 px-4 py-2.5 text-sm text-chalk placeholder:text-muted-dim focus:border-violet/70 focus:outline-none"
+              />
+              <TonightButton type="submit" disabled={loading || !refinement.trim()}>
+                {loading ? "J'AFFINE…" : "VALIDER"}
+              </TonightButton>
+            </form>
+          ) : null}
+
           {refinementError ? (
             <p role="alert" className="text-xs text-danger">{refinementError}</p>
           ) : null}
-        </section>
-      ) : null}
+        </div>
+      </section>
 
       <WhySection offer={current} relaxations={response?.relaxations.map((item) => item.message) ?? []} />
 

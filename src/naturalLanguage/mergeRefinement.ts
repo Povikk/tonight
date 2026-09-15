@@ -60,7 +60,9 @@ export function mergeRefinementPreferences(
     hardConstraints: union(base.hardConstraints, refinement.hardConstraints),
     softPreferences: union(base.softPreferences, refinement.softPreferences),
     confidence: Math.max(base.confidence, refinement.confidence),
-    source: "yolo",
+    // L'affinage est disponible depuis tous les parcours : questionnaire,
+    // Express, langage naturel et YOLO gardent leur origine.
+    source: base.source,
     rawQuery: refinement.rawQuery,
   };
 }

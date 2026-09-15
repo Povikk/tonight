@@ -37,4 +37,14 @@ describe("mergeRefinementPreferences", () => {
     expect(merged.excludedMoods).toContain("horror");
     expect(merged.hardExcludedGenres).not.toContain(GENRE.HORROR);
   });
+
+  it("conserve l'origine d'un questionnaire", () => {
+    const base = createEmptyPreferences("questionnaire", { mediaType: "tv" });
+    const parsed = parseNaturalLanguageRequest("plus récent", {
+      forcedMediaType: "tv",
+      source: "questionnaire",
+    }).preferences;
+
+    expect(mergeRefinementPreferences(base, parsed).source).toBe("questionnaire");
+  });
 });
