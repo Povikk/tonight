@@ -187,7 +187,7 @@ const positiveMoods: MoodDefinition[] = [
   {
     id: "suspense",
     label: "Suspense",
-    emoji: "😱",
+    emoji: "😰",
     genres: [GENRE.THRILLER, GENRE.MYSTERY, GENRE.HORROR],
     keywordLabels: ["suspense", "serial killer"],
     keywordSlugs: ["suspense", "thriller"],
@@ -196,9 +196,9 @@ const positiveMoods: MoodDefinition[] = [
   },
   {
     id: "horror",
-    label: "Horreur",
-    labelSeries: "Horreur",
-    emoji: "🩸",
+    label: "Avoir peur",
+    labelSeries: "Avoir peur",
+    emoji: "😱",
     genres: [GENRE.HORROR],
     keywordLabels: ["horror", "supernatural horror"],
     keywordSlugs: ["horror", "haunted"],
