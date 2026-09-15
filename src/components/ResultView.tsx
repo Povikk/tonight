@@ -65,15 +65,27 @@ function AlternativesStrip({
    * resterait invisible.
    */
   const activeRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   useEffect(() => {
+    const list = listRef.current;
+    const active = activeRef.current;
+    if (!list || !active) return;
+
     const reduced =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    activeRef.current?.scrollIntoView({
-      block: "nearest",
-      inline: "center",
-      behavior: reduced ? "auto" : "smooth",
-    });
+
+    // Recentrage HORIZONTAL uniquement. `scrollIntoView` défilait aussi le
+    // document : la page « baissait » à chaque « UN AUTRE ».
+    const listRect = list.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const centered =
+      list.scrollLeft +
+      (activeRect.left + activeRect.width / 2) -
+      (listRect.left + listRect.width / 2);
+    const left = Math.max(0, Math.min(centered, list.scrollWidth - list.clientWidth));
+
+    list.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
   }, [activeIndex]);
 
   if (offers.length <= 1) return null;
@@ -82,7 +94,7 @@ function AlternativesStrip({
       <h2 id="alternatives-title" className="text-sm uppercase tracking-[0.18em] text-muted-dim">
         Mes idées pour ce soir
       </h2>
-      <ul className="flex snap-x gap-3 overflow-x-auto pb-2">
+      <ul ref={listRef} className="flex snap-x gap-3 overflow-x-auto pb-2">
         {offers.slice(0, 8).map((offer, index) => (
           <li key={`${offer.candidate.mediaType}:${offer.candidate.id}`} className="snap-start">
             <button
