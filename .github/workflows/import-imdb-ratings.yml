@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/import-imdb-ratings.yml"
+      - "scripts/import-imdb-ratings.mjs"
+      - "package-lock.json"
 
 concurrency:
   group: imdb-ratings-import
