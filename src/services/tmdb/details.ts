@@ -12,7 +12,7 @@ import {
   withTvCredits,
 } from "./mappers";
 import { tmdbFetch } from "./client";
-import { enrichWithOmdbRatings } from "@/services/omdb/client";
+import { enrichWithImdbRatings } from "@/services/imdb/ratings";
 
 interface TmdbVideosResponse {
   results?: TmdbVideo[];
@@ -97,7 +97,7 @@ export async function getMovieDetails(id: number): Promise<CandidateDetails> {
     trailer,
     similar,
   };
-  return ((await enrichWithOmdbRatings([details]))[0] ?? details) as CandidateDetails;
+  return ((await enrichWithImdbRatings([details]))[0] ?? details) as CandidateDetails;
 }
 
 /** Fiche série complète. */
@@ -130,5 +130,5 @@ export async function getSeriesDetails(id: number): Promise<CandidateDetails> {
     trailer,
     similar,
   };
-  return ((await enrichWithOmdbRatings([details]))[0] ?? details) as CandidateDetails;
+  return ((await enrichWithImdbRatings([details]))[0] ?? details) as CandidateDetails;
 }

@@ -51,7 +51,7 @@ export interface CatalogSource {
   /** Fiche détaillée. */
   getDetails(mediaType: MediaType, id: number): Promise<CandidateDetails>;
 
-  /** Ajoute les notes publiques destinées à l'affichage (IMDb si configuré). */
+  /** Ajoute les notes publiques destinées à l'affichage depuis le dataset IMDb. */
   enrichPublicRatings(candidates: Candidate[]): Promise<Candidate[]>;
 
   /** Genres disponibles, dans la langue courante. */

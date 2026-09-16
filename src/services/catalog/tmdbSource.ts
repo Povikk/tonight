@@ -24,7 +24,7 @@ import type { TmdbMovieDetails, TmdbMovieListItem, TmdbTvDetails, TmdbTvListItem
 import { POOL_TARGET_SIZE, genreName, toGenreForMedia } from "@/utils/constants";
 import { compact, mapLimit } from "@/utils/async";
 import { tmdbFetch } from "@/services/tmdb/client";
-import { enrichWithOmdbRatings } from "@/services/omdb/client";
+import { enrichWithImdbRatings } from "@/services/imdb/ratings";
 import { discoverMovies, discoverSeries, type DiscoverSort } from "@/services/tmdb/discover";
 import { getMovieDetails, getSeriesDetails } from "@/services/tmdb/details";
 import { getGenres, getProviders } from "@/services/tmdb/genres";
@@ -495,7 +495,7 @@ export function createTmdbCatalog(): CatalogSource {
     },
 
     async enrichPublicRatings(candidates: Candidate[]): Promise<Candidate[]> {
-      return enrichWithOmdbRatings(candidates);
+      return enrichWithImdbRatings(candidates);
     },
 
     async getGenres(mediaType: MediaType) {

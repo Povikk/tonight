@@ -52,6 +52,7 @@ back-office, Supabase, base de données. Les goûts vivent dans le `localStorage
 - **Tailwind CSS 4**
 - **Vitest** pour les tests
 - **TMDB** comme source de données, interrogée dynamiquement
+- **IMDb Non-Commercial Datasets** pour les notes publiques, importées quotidiennement
 - **localStorage** (via un service dédié) pour les goûts et l'historique
 
 Aucune API d'IA payante n'est nécessaire : le parser est **local** et l'explication
@@ -143,7 +144,6 @@ TONIGHT_REGION=FR
 | --- | --- | --- |
 | `TMDB_READ_ACCESS_TOKEN` | aucun | Token v4 (Bearer). Recommandé. |
 | `TMDB_API_KEY` | aucun | Clé v3 (`api_key=`). Alternative. |
-| `OMDB_API_KEY` | aucun | Notes IMDb via OMDb, avec repli automatique sur TMDB. |
 | `TONIGHT_LANGUAGE` | `fr-FR` | Langue des données TMDB. |
 | `TONIGHT_REGION` | `FR` | Région des plateformes de streaming. |
 
@@ -161,6 +161,19 @@ Navigateur  →  /api/parse · /api/recommend · /api/catalog · /api/search · 
 
 Toutes les requêtes TMDB partent de routes serveur (`src/app/api/*`) ou de serveurs
 components. Aucune variable `NEXT_PUBLIC_*` n'est utilisée pour TMDB.
+
+### Notes IMDb
+
+Les notes viennent du fichier officiel `title.ratings.tsv.gz`, réservé par IMDb aux
+usages personnels et non commerciaux. Le workflow `Import IMDb ratings` le télécharge
+chaque jour à 03:17 UTC, le décompresse en streaming et publie environ 100 shards dans
+Workers KV. Une nouvelle version ne devient visible qu'après un import complet ; la
+version précédente reste donc active en cas de panne. Le workflow requiert les secrets
+GitHub `CLOUDFLARE_API_TOKEN` (permission Workers KV Storage: Edit). Un import manuel
+se lance avec `npm run import:imdb`.
+
+Le site regroupe les lectures par shard et revient automatiquement à la note TMDB si
+KV n'est pas disponible. Aucun appel OMDb et aucune clé OMDb ne sont nécessaires.
 
 Les routes publiques ajoutent également plusieurs garde-fous :
 
@@ -362,10 +375,10 @@ dans la mauvaise direction, jamais un questionnaire de douze étapes.
 
 Chaque candidat reçoit un **Tonight Score** (0 → 1), puis un **% MATCH** affiché.
 
-Les notes affichées viennent d'**IMDb via OMDb** lorsque `OMDB_API_KEY` est
-configurée. Le moteur conserve les signaux TMDB homogènes pour son classement ;
-IMDb enrichit uniquement les propositions finales (8 maximum, cache 7 jours).
-Sans clé ou si OMDb est indisponible, la note TMDB reste affichée.
+Les notes affichées viennent du **dataset officiel IMDb**, importé quotidiennement
+dans Workers KV. Le moteur conserve les signaux TMDB homogènes pour son classement ;
+IMDb enrichit uniquement les propositions finales. Si KV est indisponible ou qu'un
+titre n'est pas présent dans le dataset, la note TMDB reste affichée.
 
 ```
 moodMatch       25 %   intentions (genres + keywords + synopsis + conflits)

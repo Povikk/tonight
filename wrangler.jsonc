@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tonight",
+  "account_id": "d8d73772361346e468bc29870853decd",
   "compatibility_date": "2026-09-14",
   "compatibility_flags": [
     "nodejs_compat"
@@ -10,6 +11,12 @@
     "TONIGHT_REGION": "FR",
     "TONIGHT_POOL_TARGET_SIZE": "16"
   },
+  "kv_namespaces": [
+    {
+      "binding": "IMDB_RATINGS",
+      "id": "6d438d1532714a69a7bae1d1b2182dac"
+    }
+  ],
   "main": "vinext/server/fetch-handler",
   "assets": {
     "directory": "dist/client",
