@@ -9,6 +9,7 @@ import { seriesStatusLabel } from "@/utils/constants";
 import { canonicalGenres } from "@/utils/canonical";
 import { EXTERNAL_LINK_REL, allOffersUrl } from "@/utils/providers";
 import { trailerEmbedUrl, trailerWatchUrl } from "@/utils/trailers";
+import { displayedRating } from "@/utils/ratings";
 import type { CandidateDetails } from "@/types/tonight";
 import { BackdropImage, PosterImage } from "./PosterImage";
 import { ProviderBadges, detailHref } from "./cards";
@@ -102,6 +103,7 @@ export function DetailView({
   const router = useRouter();
   const { runSearch } = useTonight();
   const isMovie = details.mediaType === "movie";
+  const rating = displayedRating(details);
   // Verrou anti double-clic : la recherche est signalée par le voile global
   // (SearchOverlay), on n'a donc pas besoin de remplacer la fiche.
   const [searching, setSearching] = useState(false);
@@ -187,7 +189,7 @@ export function DetailView({
             </p>
 
             <p className="text-sm text-muted-dim">
-              ⭐ {formatRating(details.voteAverage)} · {formatVoteCount(details.voteCount)}
+              ⭐ {formatRating(rating.average)}{rating.source ? ` ${rating.source}` : ""} · {formatVoteCount(rating.voteCount)}
               {details.countries.length ? ` · ${details.countries.join(", ")}` : ""}
             </p>
 

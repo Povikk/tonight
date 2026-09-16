@@ -143,6 +143,7 @@ TONIGHT_REGION=FR
 | --- | --- | --- |
 | `TMDB_READ_ACCESS_TOKEN` | aucun | Token v4 (Bearer). Recommandé. |
 | `TMDB_API_KEY` | aucun | Clé v3 (`api_key=`). Alternative. |
+| `OMDB_API_KEY` | aucun | Notes IMDb via OMDb, avec repli automatique sur TMDB. |
 | `TONIGHT_LANGUAGE` | `fr-FR` | Langue des données TMDB. |
 | `TONIGHT_REGION` | `FR` | Région des plateformes de streaming. |
 
@@ -360,6 +361,11 @@ dans la mauvaise direction, jamais un questionnaire de douze étapes.
 ## 8. Comment fonctionne le scoring
 
 Chaque candidat reçoit un **Tonight Score** (0 → 1), puis un **% MATCH** affiché.
+
+Les notes affichées viennent d'**IMDb via OMDb** lorsque `OMDB_API_KEY` est
+configurée. Le moteur conserve les signaux TMDB homogènes pour son classement ;
+IMDb enrichit uniquement les propositions finales (8 maximum, cache 7 jours).
+Sans clé ou si OMDb est indisponible, la note TMDB reste affichée.
 
 ```
 moodMatch       25 %   intentions (genres + keywords + synopsis + conflits)

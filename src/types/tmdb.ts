@@ -127,6 +127,8 @@ export interface TmdbVideo {
 }
 
 export interface TmdbMovieDetails extends TmdbMovieListItem {
+  imdb_id?: string | null;
+  external_ids?: TmdbExternalIds;
   runtime: number | null;
   tagline: string | null;
   status: string;
@@ -157,6 +159,7 @@ export interface TmdbEpisodeSummary {
 }
 
 export interface TmdbTvDetails extends TmdbTvListItem {
+  external_ids?: TmdbExternalIds;
   tagline: string | null;
   created_by?: TmdbCreatedBy[];
   episode_run_time?: number[];
@@ -174,6 +177,10 @@ export interface TmdbTvDetails extends TmdbTvListItem {
   similar?: TmdbPaged<TmdbTvListItem>;
   videos?: { results: TmdbVideo[] };
   "watch/providers"?: TmdbWatchProviderAvailability;
+}
+
+export interface TmdbExternalIds {
+  imdb_id?: string | null;
 }
 
 export interface TmdbKeyword {

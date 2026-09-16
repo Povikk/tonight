@@ -260,6 +260,13 @@ export interface ProviderAvailability {
   link?: string | null;
 }
 
+/** Note publique externe utilisée pour l'affichage, sans modifier le scoring. */
+export interface PublicRating {
+  source: "imdb";
+  average: number;
+  voteCount: number;
+}
+
 /** Forme normalisée d'une œuvre, quelle que soit sa source (TMDB ou démo). */
 export interface Candidate {
   id: number;
@@ -287,6 +294,10 @@ export interface Candidate {
 
   voteAverage: number;
   voteCount: number;
+  /** Identifiant IMDb résolu pendant l'enrichissement TMDB. */
+  imdbId?: string | null;
+  /** Note affichée si une source externe est disponible. */
+  publicRating?: PublicRating | null;
   popularity: number;
 
   posterPath: string | null;

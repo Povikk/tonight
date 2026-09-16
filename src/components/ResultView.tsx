@@ -11,6 +11,7 @@ import {
 } from "@/naturalLanguage/mergeRefinement";
 import { formatRating, formatRuntime, formatSeriesYears, formatVoteCount, formatEpisodeRuntime, formatSeasons } from "@/utils/format";
 import { seriesStatusLabel } from "@/utils/constants";
+import { displayedRating } from "@/utils/ratings";
 import type { ParsedRequest, ScoredCandidate, TonightSearchPreferences } from "@/types/tonight";
 import { BackdropImage, PosterImage } from "./PosterImage";
 import { MatchBadge, ProviderBadges, detailHref } from "./cards";
@@ -232,6 +233,7 @@ export function ResultView() {
   const candidate = current.candidate;
   const isMovie = candidate.mediaType === "movie";
   const genres = canonicalGenres(candidate.genres);
+  const rating = displayedRating(candidate);
 
   const similar = () => {
     const similarPrefs = createEmptyPreferences("yolo", {
@@ -370,7 +372,7 @@ export function ResultView() {
             <div className="flex flex-wrap items-center gap-3">
               <MatchBadge percent={current.matchPercent} size="lg" />
               <span className="text-sm text-muted">
-                ⭐ {formatRating(candidate.voteAverage)} · {formatVoteCount(candidate.voteCount)}
+                ⭐ {formatRating(rating.average)}{rating.source ? ` ${rating.source}` : ""} · {formatVoteCount(rating.voteCount)}
               </span>
               {!isMovie && candidate.episodeRuntime ? (
                 <span className="text-sm text-muted-dim">{formatEpisodeRuntime(candidate.episodeRuntime)}</span>

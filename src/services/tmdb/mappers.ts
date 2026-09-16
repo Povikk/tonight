@@ -56,6 +56,11 @@ export function toMovieCandidate(raw: TmdbMovieListItem | TmdbMovieDetails, extr
     overview: raw.overview ?? "",
     voteAverage: raw.vote_average ?? 0,
     voteCount: raw.vote_count ?? 0,
+    imdbId:
+      (raw as TmdbMovieDetails).imdb_id ??
+      (raw as TmdbMovieDetails).external_ids?.imdb_id ??
+      null,
+    publicRating: null,
     popularity: raw.popularity ?? 0,
     posterPath: raw.poster_path ?? null,
     backdropPath: raw.backdrop_path ?? null,
@@ -92,6 +97,8 @@ export function toTvCandidate(raw: TmdbTvListItem | TmdbTvDetails, extras: Candi
     overview: raw.overview ?? "",
     voteAverage: raw.vote_average ?? 0,
     voteCount: raw.vote_count ?? 0,
+    imdbId: (raw as TmdbTvDetails).external_ids?.imdb_id ?? null,
+    publicRating: null,
     popularity: raw.popularity ?? 0,
     posterPath: raw.poster_path ?? null,
     backdropPath: raw.backdrop_path ?? null,

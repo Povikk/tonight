@@ -12,6 +12,7 @@ import {
   withTvCredits,
 } from "./mappers";
 import { tmdbFetch } from "./client";
+import { enrichWithOmdbRatings } from "@/services/omdb/client";
 
 interface TmdbVideosResponse {
   results?: TmdbVideo[];
@@ -70,7 +71,7 @@ async function resolveTrailer(
 export async function getMovieDetails(id: number): Promise<CandidateDetails> {
   const payload = await tmdbFetch<TmdbMovieDetails>(
     `/movie/${id}`,
-    { append_to_response: "credits,keywords,watch/providers,similar,videos" },
+    { append_to_response: "credits,keywords,watch/providers,similar,videos,external_ids" },
     { revalidate: 86_400 },
   );
 
@@ -85,7 +86,7 @@ export async function getMovieDetails(id: number): Promise<CandidateDetails> {
     payload.original_language,
   );
 
-  return {
+  const details: CandidateDetails = {
     ...base,
     tagline: payload.tagline ?? null,
     genresDetailed: (payload.genres ?? []).map((genre) => ({ id: genre.id, name: genre.name })),
@@ -96,13 +97,14 @@ export async function getMovieDetails(id: number): Promise<CandidateDetails> {
     trailer,
     similar,
   };
+  return ((await enrichWithOmdbRatings([details]))[0] ?? details) as CandidateDetails;
 }
 
 /** Fiche série complète. */
 export async function getSeriesDetails(id: number): Promise<CandidateDetails> {
   const payload = await tmdbFetch<TmdbTvDetails>(
     `/tv/${id}`,
-    { append_to_response: "credits,aggregate_credits,keywords,watch/providers,similar,videos" },
+    { append_to_response: "credits,aggregate_credits,keywords,watch/providers,similar,videos,external_ids" },
     { revalidate: 86_400 },
   );
 
@@ -117,7 +119,7 @@ export async function getSeriesDetails(id: number): Promise<CandidateDetails> {
     payload.original_language,
   );
 
-  return {
+  const details: CandidateDetails = {
     ...base,
     tagline: payload.tagline ?? null,
     genresDetailed: (payload.genres ?? []).map((genre) => ({ id: genre.id, name: genre.name })),
@@ -128,4 +130,5 @@ export async function getSeriesDetails(id: number): Promise<CandidateDetails> {
     trailer,
     similar,
   };
+  return ((await enrichWithOmdbRatings([details]))[0] ?? details) as CandidateDetails;
 }

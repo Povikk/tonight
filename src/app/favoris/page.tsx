@@ -91,6 +91,7 @@ function FavoriteGrid({ entries }: { entries: FavoriteEntry[] }) {
               </span>
               <span className="block text-xs text-muted-dim">
                 {formatYear(entry.year)} · ⭐ {formatRating(entry.voteAverage)}
+                {entry.ratingSource === "imdb" ? " IMDb" : ""}
               </span>
             </span>
           </Link>

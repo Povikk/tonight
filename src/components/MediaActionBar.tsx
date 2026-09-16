@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { isFavorite, recordRecommendation, toggleFavorite } from "@/storage";
 import type { Candidate, RefusalReason } from "@/types/tonight";
+import { displayedRating } from "@/utils/ratings";
 import { TonightButton } from "./ui";
 
 /**
@@ -36,6 +37,7 @@ export function MediaActionBar({
   }, [candidate.id, candidate.mediaType]);
 
   const toggleFav = () => {
+    const rating = displayedRating(candidate);
     const next = toggleFavorite({
       key: `${candidate.mediaType}:${candidate.id}`,
       id: candidate.id,
@@ -43,7 +45,8 @@ export function MediaActionBar({
       title: candidate.title,
       year: candidate.year,
       posterPath: candidate.posterPath,
-      voteAverage: candidate.voteAverage,
+      voteAverage: rating.average,
+      ratingSource: rating.source === "IMDb" ? "imdb" : undefined,
       genres: candidate.genres,
     });
     setFavorite(next);

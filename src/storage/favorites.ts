@@ -13,6 +13,7 @@ export interface FavoriteEntry {
   year: number | null;
   posterPath: string | null;
   voteAverage: number;
+  ratingSource?: "imdb";
   genres: number[];
   addedAt: string;
 }
@@ -29,6 +30,7 @@ function migrate(raw: unknown): FavoriteEntry[] {
       year: typeof entry.year === "number" ? entry.year : null,
       posterPath: entry.posterPath ?? null,
       voteAverage: Number(entry.voteAverage ?? 0),
+      ratingSource: entry.ratingSource === "imdb" ? "imdb" : undefined,
       genres: Array.isArray(entry.genres) ? entry.genres : [],
       addedAt: String(entry.addedAt ?? new Date().toISOString()),
     }));

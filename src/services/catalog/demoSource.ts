@@ -42,6 +42,8 @@ function toCandidate(seed: DemoSeed): Candidate {
     overview: seed.overview,
     voteAverage: seed.rating,
     voteCount: seed.votes,
+    imdbId: null,
+    publicRating: null,
     popularity: seed.popularity,
     // Le catalogue de démo ne fournit pas d'images TMDB : l'UI génère alors
     // un visuel procédural (jamais d'écran cassé, exigence §67).
@@ -124,6 +126,10 @@ export function createDemoCatalog(): CatalogSource {
         trailer: null,
         similar,
       };
+    },
+
+    async enrichPublicRatings(candidates) {
+      return candidates;
     },
 
     async getGenres(mediaType: MediaType) {

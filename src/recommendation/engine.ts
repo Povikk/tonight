@@ -117,7 +117,7 @@ async function runAttempt(
   return { attempt, scored, poolSize };
 }
 
-function toResponse(outcome: AttemptOutcome | null, options: RecommendOptions): RecommendResponse {
+async function toResponse(outcome: AttemptOutcome | null, options: RecommendOptions): Promise<RecommendResponse> {
   const { preferences, count = RECOMMENDATION_COUNT, seed = 0, random } = options;
   if (!outcome || outcome.scored.length === 0) {
     return {
@@ -138,7 +138,18 @@ function toResponse(outcome: AttemptOutcome | null, options: RecommendOptions): 
     random,
   });
 
-  const withExplanations = selected.map((item) => ({
+  // La sélection reste fondée sur les signaux TMDB homogènes. IMDb sert
+  // uniquement à afficher une note publique plus familière, sur les quelques
+  // propositions finales afin de préserver le budget de sous-requêtes.
+  const ratedCandidates = await getCatalog().enrichPublicRatings(
+    selected.map((item) => item.candidate),
+  );
+  const selectedWithRatings = selected.map((item, index) => ({
+    ...item,
+    candidate: ratedCandidates[index] ?? item.candidate,
+  }));
+
+  const withExplanations = selectedWithRatings.map((item) => ({
     ...item,
     explanation: buildExplanation(item, outcome.attempt.preferences, outcome.attempt.relaxations.map((r) => r.message)),
   }));

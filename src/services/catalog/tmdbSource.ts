@@ -24,6 +24,7 @@ import type { TmdbMovieDetails, TmdbMovieListItem, TmdbTvDetails, TmdbTvListItem
 import { POOL_TARGET_SIZE, genreName, toGenreForMedia } from "@/utils/constants";
 import { compact, mapLimit } from "@/utils/async";
 import { tmdbFetch } from "@/services/tmdb/client";
+import { enrichWithOmdbRatings } from "@/services/omdb/client";
 import { discoverMovies, discoverSeries, type DiscoverSort } from "@/services/tmdb/discover";
 import { getMovieDetails, getSeriesDetails } from "@/services/tmdb/details";
 import { getGenres, getProviders } from "@/services/tmdb/genres";
@@ -264,7 +265,7 @@ function genresOf(candidate: Candidate, payload: TmdbMovieListItem | TmdbTvListI
 async function enrichMovie(candidate: Candidate): Promise<Candidate> {
   const payload = await tmdbFetch<TmdbMovieDetails>(
     `/movie/${candidate.id}`,
-    { append_to_response: "watch/providers" },
+    { append_to_response: "watch/providers,external_ids" },
     { revalidate: 86_400 },
   );
   const genres = genresOf(candidate, payload);
@@ -277,6 +278,7 @@ async function enrichMovie(candidate: Candidate): Promise<Candidate> {
     runtime: payload.runtime ?? candidate.runtime,
     voteAverage: payload.vote_average ?? candidate.voteAverage,
     voteCount: payload.vote_count ?? candidate.voteCount,
+    imdbId: payload.imdb_id ?? payload.external_ids?.imdb_id ?? candidate.imdbId ?? null,
     popularity: payload.popularity ?? candidate.popularity,
     posterPath: candidate.posterPath ?? payload.poster_path,
     backdropPath: candidate.backdropPath ?? payload.backdrop_path,
@@ -309,7 +311,7 @@ function episodeRuntimeOf(payload: TmdbTvDetails): number | null {
 async function enrichSeries(candidate: Candidate): Promise<Candidate> {
   const payload = await tmdbFetch<TmdbTvDetails>(
     `/tv/${candidate.id}`,
-    { append_to_response: "watch/providers" },
+    { append_to_response: "watch/providers,external_ids" },
     { revalidate: 86_400 },
   );
   const genres = genresOf(candidate, payload);
@@ -328,6 +330,7 @@ async function enrichSeries(candidate: Candidate): Promise<Candidate> {
     endYear: payload.last_air_date ? Number.parseInt(payload.last_air_date.slice(0, 4), 10) : candidate.endYear,
     voteAverage: payload.vote_average ?? candidate.voteAverage,
     voteCount: payload.vote_count ?? candidate.voteCount,
+    imdbId: payload.external_ids?.imdb_id ?? candidate.imdbId ?? null,
     popularity: payload.popularity ?? candidate.popularity,
     originCountry: payload.origin_country ?? candidate.originCountry,
     posterPath: candidate.posterPath ?? payload.poster_path,
@@ -489,6 +492,10 @@ export function createTmdbCatalog(): CatalogSource {
 
     async getDetails(mediaType: MediaType, id: number): Promise<CandidateDetails> {
       return mediaType === "movie" ? getMovieDetails(id) : getSeriesDetails(id);
+    },
+
+    async enrichPublicRatings(candidates: Candidate[]): Promise<Candidate[]> {
+      return enrichWithOmdbRatings(candidates);
     },
 
     async getGenres(mediaType: MediaType) {
